@@ -16,6 +16,21 @@
  * (node 1:419/1:871, "Text" — полупрозрачная диагональная текстура-паттерн)
  * сознательно опущен: он ничего не добавляет к контрасту текста поверх, а
  * тащить под него отдельную картинку задача прямо запрещает.
+ *
+ * «Заявки с … до …» — дословно из макета (узел 1:429/1:881), а не пересказ:
+ * site.hours хранит время в двух форматах — opens/closes под schema.org
+ * (ведущий ноль, closes нарочно 23:59, см. data/site.ts) и отдельные
+ * opensShort/closesShort ("6:00"/"00:00") под ровно такие предложные фразы.
+ * Та же пара полей — в Hero.astro («Алматы, заявки с …») и Business.astro
+ * («Заявку принимаем с …, до открытия смены») — три места на странице
+ * пересказывают одно и то же время, но берут его из одного источника.
+ *
+ * Подписи колонок «Телефоны» и «Режим и город» — <h3>, не <p>: визуально
+ * это та же «eyebrow»-манера (bold, uppercase, разрядка), что и в
+ * SectionHeading.astro, но по факту это заголовки своих колонок — человеку
+ * с экранным диктором нужно уметь перейти по ним как по заголовкам. Разрыва
+ * иерархии нет: перед ними в этом же футере уже стоит <h2> «Опишите
+ * поломку, ответит мастер», так что <h3> идёт следующим уровнем корректно.
  */
 import { getImage } from 'astro:assets';
 import Container from './ui/Container.astro';
@@ -48,26 +63,14 @@ const logo = await getImage({ src: images.logoMonogram.src, width: 74, height: 7
           >
             Опишите поломку, ответит мастер
           </h2>
-          {
-            /*
-              В макете дословно «Заявки с 6:00 до 00:00.» — фраза с временем
-              внутри предложения. Часы работы не пишутся в разметке напрямую
-              (глобальное ограничение задачи), а site.ts отдаёт только готовый
-              диапазон site.hours.label ("6:00-00:00"), без отдельных полей
-              под предложную конструкцию «с … до …». Подставить его в ту же
-              грамматику («Заявки с 6:00-00:00.») значило бы слепить два
-              несовместимых обозначения диапазона в одной фразе — заменено на
-              «Заявки: 6:00-00:00.», без потери смысла.
-            */
-          }
           <p class="mt-4 max-w-[453px] text-[18px] leading-[1.58] text-chalk-body md:text-[20px]">
-            Звонки принимают те же люди, которые приедут на выезд. Заявки: {site.hours.label}.
+            Звонки принимают те же люди, которые приедут на выезд. Заявки с {site.hours.opensShort} до {site.hours.closesShort}.
           </p>
           <WhatsAppButton source="footer" class="mt-[30px]" />
         </div>
 
         <div class="reveal">
-          <p class="text-[15px] font-bold uppercase tracking-[2.1px] text-chalk-muted">Телефоны</p>
+          <h3 class="text-[15px] font-bold uppercase tracking-[2.1px] text-chalk-muted">Телефоны</h3>
           <ul class="mt-4 flex flex-col">
             {
               site.phones.map((phone, index) => (
@@ -88,7 +91,7 @@ const logo = await getImage({ src: images.logoMonogram.src, width: 74, height: 7
         </div>
 
         <div class="reveal">
-          <p class="text-[15px] font-bold uppercase tracking-[2.1px] text-chalk-muted">Режим и город</p>
+          <h3 class="text-[15px] font-bold uppercase tracking-[2.1px] text-chalk-muted">Режим и город</h3>
           <div class="mt-4 flex flex-col">
             <p class="flex items-center gap-[9px] py-[11px] text-[19px] font-medium text-chalk">
               <Icon name="icon-clock" size={17} />

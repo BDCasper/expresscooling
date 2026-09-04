@@ -4,6 +4,7 @@ import Section from './ui/Section.astro';
 import Container from './ui/Container.astro';
 import WhatsAppButton from './ui/WhatsAppButton.astro';
 import { images } from '../data/assets';
+import { site } from '../data/site';
 
 const listItems = [
   'Торговые витрины и морозильные камеры',
@@ -64,8 +65,8 @@ const listItems = [
           </h2>
           <p class="mt-4 max-w-[290px] text-[20px] leading-[31.6px] text-chalk-muted md:max-w-[468px]">
             Коммерческую технику гоняют без остановки, поэтому и ломается она иначе: забитый пылью конденсатор,
-            засорённый дренаж, изношенный компрессорно-конденсаторный агрегат. Заявку принимаем с 6:00, до открытия
-            смены.
+            засорённый дренаж, изношенный компрессорно-конденсаторный агрегат. Заявку принимаем с {site.hours.opensShort},
+            до открытия смены.
           </p>
           <ul class="mt-14 flex max-w-[290px] flex-col gap-[11px] md:max-w-[468px]">
             {
