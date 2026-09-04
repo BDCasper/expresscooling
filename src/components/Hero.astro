@@ -79,14 +79,66 @@ const heroLeftGutter = 'lg:pl-[max(40px,calc((100vw-1320px)/2+40px))]';
         ремонта.
       </p>
 
-      <div class="mt-[34px] flex flex-wrap gap-[14px]">
-        <WhatsAppButton source="hero" />
-        <PhoneButton source="hero" />
+      {
+        /*
+          На мобильном (< md, node 1:491) это не две одинаковые пилюли, а
+          широкая зелёная кнопка + отдельная круглая кнопка-телефон 56×56
+          без номера справа от неё — от md возвращаются две обычные пилюли
+          в ряд с номером (проверено на node 1:8 в прошлом раунде). Два
+          варианта PhoneButton (round/pill) рендерятся как два отдельных
+          <a> с одним и тем же data-cta="hero", а не один адаптивный —
+          формы слишком разные (круг фиксированной ширины против пилюли с
+          текстом), чтобы переключать классами один и тот же элемент, как
+          сделано для короткой подписи WhatsAppButton в шапке. Второй
+          <a data-cta> здесь не задваивает клики в аналитике (тот же
+          принцип, что и у пары span'ов в шапке): на любой ширине виден и
+          кликабелен только один из двух — у скрытого display:none, он не
+          в accessibility-дереве и не ловит события клика.
+
+          Видимость PhoneButton переключается обёрткой (<div>), а не
+          классом на самой кнопке: у PhoneButton уже есть безусловный
+          "inline-flex" внутри собственного base — если сюда же добавить
+          className="hidden md:inline-flex" на тот же <a>, оба класса
+          одного уровня специфичности (оба без брейкпоинт-префикса у
+          "hidden") конкурируют за display, и какой победит — решает
+          порядок генерации самого Tailwind, а не порядок классов в
+          строке (поймано вживую: без обёртки пилюля с номером оставалась
+          видимой и на мобильном, вылезая за край экрана). Обёртка не
+          спорит ни с чем — на div нет своего display-класса, кроме
+          hidden/md:block, поэтому побеждает предсказуемо. У round-кнопки
+          та же ловушка не сработала бы (md:hidden с префиксом гарантированно
+          позже безпрефиксного inline-flex в Tailwind), но для единообразия
+          и она обёрнута.
+        */
+      }
+      <div class="mt-[34px] flex items-center gap-[14px]">
+        <WhatsAppButton source="hero" class="flex-1 md:flex-none" />
+        <div class="md:hidden">
+          <PhoneButton source="hero" variant="round" />
+        </div>
+        <div class="hidden md:block">
+          <PhoneButton source="hero" variant="pill" />
+        </div>
       </div>
 
-      <div class="mt-[46px] flex flex-wrap gap-x-14 gap-y-6 border-t border-white/13 pt-[31px]">
+      {
+        /*
+          grid grid-cols-2 вместо flex flex-wrap на мобильном: в макете
+          (node 1:491) показатели стоят в две колонки даже на 390px, а
+          подписи под числами при нехватке места переносятся на две
+          строки внутри своей колонки — это ожидаемо, не баг. flex-wrap
+          вместо этого переносил бы весь второй блок под первый, как
+          только их суммарная содержимая ширина (макс. 246px на подпись
+          × 2 + gap-x-14) переставала помещаться в строку — то есть
+          всегда на мобильном, откуда и растянутый первый экран до этой
+          правки. С md возвращается прежнее поведение (flex flex-wrap,
+          колонки по ширине контента) — там места достаточно и так, менять
+          не просили.
+        */
+      }
+      <div class="mt-[46px] grid grid-cols-2 gap-x-14 gap-y-6 border-t border-white/13 pt-[31px] md:flex md:flex-wrap">
         <div>
-          <p class="text-[27px] font-extrabold tracking-[-0.756px] text-amber lg:text-[40px] lg:tracking-[-1.12px]">
+          <p class="whitespace-nowrap text-[27px] font-extrabold tracking-[-0.756px] text-amber lg:text-[40px] lg:tracking-[-1.12px]">
             {site.hours.label}
           </p>
           <p class="mt-[9px] max-w-[246px] text-[16.785px] leading-[23.499px] text-chalk-muted">
@@ -94,7 +146,7 @@ const heroLeftGutter = 'lg:pl-[max(40px,calc((100vw-1320px)/2+40px))]';
           </p>
         </div>
         <div>
-          <p class="text-[27px] font-extrabold tracking-[-0.756px] text-amber lg:text-[40px] lg:tracking-[-1.12px]">
+          <p class="whitespace-nowrap text-[27px] font-extrabold tracking-[-0.756px] text-amber lg:text-[40px] lg:tracking-[-1.12px]">
             {site.responseTime}
           </p>
           <p class="mt-[9px] max-w-[246px] text-[16.785px] leading-[23.499px] text-chalk-muted">

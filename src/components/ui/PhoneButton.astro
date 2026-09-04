@@ -6,17 +6,45 @@ import Icon from './Icon.astro';
 interface Props {
   source: string;
   phone?: Phone;
+  /**
+   * `pill` (по умолчанию) — прежнее и единственное до этой правки поведение:
+   * полная пилюля с видимым номером, как везде на сайте.
+   *
+   * `round` — круглая кнопка 56×56 (node 1:491, мобильный первый экран):
+   * только значок, без видимого номера, рядом с растянутой на всю
+   * оставшуюся ширину кнопкой WhatsApp. Видимого текста нет, поэтому номер
+   * уходит в aria-label — иначе кнопка для скринридера была бы безымянной
+   * ссылкой. У `pill` отдельного aria-label нет и не нужен: там номер и
+   * так читается из текста ссылки.
+   */
+  variant?: 'pill' | 'round';
   class?: string;
 }
 
-const { source, phone = primaryPhone(), class: className = '' } = Astro.props;
+const { source, phone = primaryPhone(), variant = 'pill', class: className = '' } = Astro.props;
+
+const base =
+  'inline-flex h-14 items-center justify-center rounded-pill border border-white/36 text-white transition-colors duration-200 ease-soft hover:border-white/70 hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber';
+
+/**
+ * --radius-pill в global.css — фиксированные 100px, не 9999px/50%: на
+ * квадратной коробке 56×56 браузер всё равно клампит радиус до половины
+ * стороны (28px) по спецификации CSS, так что тот же класс rounded-pill
+ * даёт идеальный круг для round и обычную пилюлю для pill — отдельный
+ * rounded-full не нужен.
+ */
+const variants = {
+  pill: 'gap-3 pl-9 pr-6 text-[18px] font-semibold',
+  round: 'w-14 shrink-0',
+};
 ---
 
 <a
   href={telHref(phone.raw)}
   data-cta={source}
-  class={`inline-flex h-14 items-center gap-3 rounded-pill border border-white/36 pl-9 pr-6 text-[18px] font-semibold text-white transition-colors duration-200 ease-soft hover:border-white/70 hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber ${className}`}
+  aria-label={variant === 'round' ? `Позвонить: ${phone.display}` : undefined}
+  class={`${base} ${variants[variant]} ${className}`}
 >
   <Icon name="icon-phone-white" size={21} />
-  <span>{phone.display}</span>
+  {variant === 'pill' && <span>{phone.display}</span>}
 </a>
