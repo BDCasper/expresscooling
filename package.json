@@ -9,6 +9,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
+    "check": "astro check",
     "test:unit": "vitest run",
     "test:e2e": "playwright test",
     "test": "npm run test:unit && npm run test:e2e"
@@ -22,8 +23,10 @@
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.10",
     "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.62.1",
+    "typescript": "^6.0.3",
     "vitest": "^5.0.0"
   }
 }

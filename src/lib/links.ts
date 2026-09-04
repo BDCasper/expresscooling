@@ -17,9 +17,10 @@ export function primaryPhone(): Phone {
 /**
  * Базовая ссылка на WhatsApp. UTM-метки и gclid дописываются на клиенте
  * в inline-скрипте: статический HTML не знает параметров запроса.
+ *
+ * Пробелы кодируются как %20 (не +): это правильно как для form-urlencoded,
+ * так и для обычного URI разбора, в то время как + правилен только для form.
  */
 export function whatsappHref(): string {
-  const url = new URL(`https://wa.me/${digitsOnly(primaryPhone().raw)}`);
-  url.searchParams.set('text', site.whatsappText);
-  return url.toString();
+  return `https://wa.me/${digitsOnly(primaryPhone().raw)}?text=${encodeURIComponent(site.whatsappText)}`;
 }

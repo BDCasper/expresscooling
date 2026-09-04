@@ -26,17 +26,35 @@ describe('whatsappHref', () => {
     expect(whatsappHref()).toMatch(/^https:\/\/wa\.me\/77011325970\?/);
   });
 
-  it('подставляет заготовку сообщения', () => {
-    const text = new URL(whatsappHref()).searchParams.get('text');
-    expect(text).toBe(site.whatsappText);
+  it('подставляет заготовку сообщения с кодированием %20', () => {
+    const href = whatsappHref();
+    // Проверяем начало ссылки
+    expect(href).toMatch(/^https:\/\/wa\.me\/77011325970\?text=/);
+    // Извлекаем закодированную часть текста
+    const encodedText = href.split('text=')[1];
+    // Проверяем что пробелы кодируются как %20, а не +
+    expect(encodedText).toContain('%20');
+    expect(encodedText).not.toContain('+');
+    // Проверяем что раскодирование даёт ровно исходный текст
+    expect(decodeURIComponent(encodedText)).toBe(site.whatsappText);
   });
 });
 
 describe('site', () => {
-  it('не содержит номеров-заглушек из макета', () => {
+  it('не содержит номеров-заглушек из макета (устойчиво к форматированию)', () => {
+    // Нормализуем все данные сайта, убирая всё кроме цифр
     const serialized = JSON.stringify(site);
-    expect(serialized).not.toContain('7760251088');
-    expect(serialized).not.toContain('7078887371');
+    const normalized = serialized.replace(/\D/g, '');
+    // Проверяем что слитные формы заглушек не попали в данные
+    expect(normalized).not.toContain('7760251088');
+    expect(normalized).not.toContain('7078887371');
+  });
+
+  it('ловит заглушку в человеческом формате', () => {
+    // Эта заглушка в таком формате может быть случайно скопирована из макета
+    const humanFormat = '+7 760 251 088';
+    const normalized = humanFormat.replace(/\D/g, '');
+    expect(normalized).toBe('7760251088');
   });
 
   it('содержит оба настоящих номера', () => {
