@@ -24,6 +24,19 @@ interface Props {
    */
   mobileLabel?: string;
   class?: string;
+  /**
+   * Только для variant="inline" (карточки поломок, node 1:90 — жёлтая,
+   * 1:105 и малые карточки — белые). В макете это текст + стрелка после
+   * него (icon-arrow-up-right / -alt), а не значок WhatsApp — и цвет
+   * текста, и то, какой из двух файлов стрелки рисуется, зависят от фона
+   * карточки: #0B6B4F + icon-arrow-up-right на белом, #084C36 +
+   * icon-arrow-up-right-alt на жёлтой. Оба значения — точные заливки из
+   * get_design_context (узлы 1:101/1:114) и совпадают с зашитым цветом
+   * самих SVG (см. Icon.astro: цвет запечён в файле, не currentColor) —
+   * поэтому выбор файла обязан произойти здесь, на сервере, а не через
+   * CSS-переопределение. На variant="solid" не влияет.
+   */
+  onAmber?: boolean;
 }
 
 const {
@@ -33,6 +46,7 @@ const {
   label = 'Написать в WhatsApp',
   mobileLabel = label,
   class: className = '',
+  onAmber = false,
 } = Astro.props;
 
 const base =
@@ -55,12 +69,21 @@ const solidSizes = {
   sm: 'h-[46px] gap-1 md:gap-3 pl-[29px] pr-[21px] text-[17px]',
 };
 
+/**
+ * Зазор inline-варианта — 7px (node 1:102 "Icon:margin", pl-[7px] перед
+ * стрелкой), не стандартный gap-3 (12px): это отдельное число из макета
+ * для этой конкретной пары текст+иконка, не унаследовано от solid.
+ * Прежний hover:gap-4 (зазор расширялся целиком) убран — по правке
+ * ревью «оживляет» карточку сама стрелка (см. группа .group-hover ниже
+ * на <Icon>), а не зазор.
+ */
 const variants = {
   solid: `rounded-pill bg-wa text-wa-ink hover:bg-[#2ee070] hover:shadow-[0_8px_24px_-8px_rgba(37,211,102,0.6)] ${solidSizes[size]}`,
-  inline: 'gap-3 text-wa-ink/90 text-[17px] hover:gap-4',
+  inline: `gap-[7px] text-[17px] ${onAmber ? 'text-[#084c36]' : 'text-[#0b6b4f]'}`,
 };
 
 const iconSize = size === 'sm' ? 19 : 21;
+const inlineArrowIcon = onAmber ? 'icon-arrow-up-right-alt' : 'icon-arrow-up-right';
 ---
 
 <a
@@ -70,7 +93,7 @@ const iconSize = size === 'sm' ? 19 : 21;
   rel="noopener noreferrer"
   class={`${base} ${variants[variant]} ${className}`}
 >
-  <Icon name="icon-whatsapp-button" size={iconSize} />
+  {variant === 'solid' && <Icon name="icon-whatsapp-button" size={iconSize} />}
   <span class="hidden md:inline">{label}</span>
   {
     /*
@@ -99,4 +122,23 @@ const iconSize = size === 'sm' ? 19 : 21;
     */
   }
   <span class="whitespace-nowrap text-[14px] md:hidden">{mobileLabel}</span>
+  {
+    /*
+      group-hover — карточка поломки оборачивает эту кнопку в class="group"
+      (BreakageCard.astro), поэтому стрелка сдвигается на 2px вправо-вверх
+      при наведении на всю карточку, не только на саму ссылку — так в
+      макете. translate-x-0.5/-translate-y-0.5 = 2px при --spacing:0.25rem
+      (дефолт Tailwind v4, в проекте не переопределён). Там, где variant
+      solid, .group-hover ничего не делает без предка .group — не мешает.
+    */
+  }
+  {
+    variant === 'inline' && (
+      <Icon
+        name={inlineArrowIcon}
+        size={16}
+        class="transition-transform duration-200 ease-soft group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+      />
+    )
+  }
 </a>
