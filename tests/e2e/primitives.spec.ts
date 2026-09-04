@@ -13,17 +13,7 @@ test('ссылка на телефон использует tel: с междун
   await expect(phone).toHaveAttribute('href', 'tel:+77011325970');
 });
 
-test('иконки двух разных брендов на одной странице не делят id между собой', async ({ page }) => {
-  // Все brand-*.svg выгружены из Figma одним инструментом и внутри имеют
-  // совпадающие id (clip0_0_4, Icon, Vector). Если Icon.astro не переписывает
-  // их под уникальный префикс на каждый экземпляр, второй SVG на странице
-  // унаследует clip-path первого через одинаковый id — и обрежется чужой
-  // маской. Проверяем на уровне HTML: ни один id не должен повторяться дважды.
-  await page.goto('/');
-
-  const ids = await page.locator('#test-icons [id]').evaluateAll((nodes) => nodes.map((n) => n.id));
-
-  expect(ids.length).toBeGreaterThan(0);
-  const duplicates = ids.filter((id, index) => ids.indexOf(id) !== index);
-  expect(duplicates).toEqual([]);
-});
+// Проверка уникальности id между несколькими brand-*.svg на одной странице
+// перенесена в tests/e2e/equipment.spec.ts — там их четыре подряд рядом
+// по-настоящему (ряд брендов), а не тестовая площадка #test-icons, которую
+// удалит задача 12.

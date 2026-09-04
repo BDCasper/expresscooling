@@ -3,11 +3,16 @@ import Section from './ui/Section.astro';
 import Container from './ui/Container.astro';
 import SectionHeading from './ui/SectionHeading.astro';
 import Icon from './ui/Icon.astro';
+import { site } from '../data/site';
 
 /**
  * Три шага (node 1:211). Иконки — бронза #8A6100 на кремовом фоне
  * (icon-speech-bubble/icon-price-tag-light/icon-wrench, см. комментарий
  * в Icon.astro), тексты дословно из get_design_context.
+ *
+ * У второго шага цена не вписана литералом — берём site.diagnosticsFrom
+ * (уже «от 3500 ₸», со своим «от»), та же логика, что в FactsBar.astro:
+ * цена не должна дублироваться в разметке отдельной строкой от site.ts.
  */
 const steps = [
   {
@@ -18,7 +23,7 @@ const steps = [
   {
     icon: 'icon-price-tag-light',
     title: 'Цена до работ',
-    text: 'Вскрываем узел, находим причину, называем стоимость и объём до того, как что-то откручено. Диагностика от 3500 ₸, выезд отдельно не считаем.',
+    text: `Вскрываем узел, находим причину, называем стоимость и объём до того, как что-то откручено. Диагностика ${site.diagnosticsFrom}, выезд отдельно не считаем.`,
   },
   {
     icon: 'icon-wrench',
