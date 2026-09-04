@@ -35,10 +35,23 @@ test('клик по CTA кладёт событие в dataLayer с меткой
   expect(serialized).toContain('whatsapp_click');
 });
 
-test('UTM-метки дописываются в сообщение WhatsApp', async ({ page }) => {
+test('UTM-метки дописываются в сообщение WhatsApp без искажения пробелов', async ({ page }) => {
   await page.goto('/?gclid=TEST123&utm_source=google');
-  const href = await page.locator('a[data-cta]').first().getAttribute('href');
-  const text = new URL(href ?? '').searchParams.get('text') ?? '';
-  expect(text).toContain('TEST123');
-  expect(text).toContain('google');
+  const href = (await page.locator('a[data-cta]').first().getAttribute('href')) ?? '';
+
+  // Намеренно не читаем это через `new URL(href).searchParams.get('text')`:
+  // URLSearchParams разворачивает "+" обратно в пробел при чтении, поэтому
+  // не отличит правильную кодировку (encodeURIComponent, пробел -> %20) от
+  // сломанной (URLSearchParams.set, пробел -> +) — тест был бы зелёным в
+  // обоих случаях. Проверяем сырую строку до раскодирования и раскодируем
+  // сами тем же способом, каким текст был закодирован изначально.
+  const textIndex = href.indexOf('text=');
+  expect(textIndex).toBeGreaterThan(-1);
+  const rawText = href.slice(textIndex + 'text='.length);
+
+  expect(rawText).not.toContain('+');
+
+  const decoded = decodeURIComponent(rawText);
+  expect(decoded).toContain('TEST123');
+  expect(decoded).toContain('google');
 });

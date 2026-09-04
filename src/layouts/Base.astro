@@ -20,11 +20,11 @@ const ADS_ID = import.meta.env.PUBLIC_ADS_ID ?? '';
  * Тег gtag.js весит около 90 КБ и выполняется в главном потоке — на
  * лендинге под платную рекламу Google это цена клика, поэтому он не
  * попадает в <head> напрямую. Вместо этого ниже лежит только тонкая
- * обвязка (~1.3 КБ), которая грузит настоящий тег по первому скролу,
- * касанию, клику или нажатию клавиши — то есть по первому признаку, что
- * во вкладке вообще кто-то есть. Резервный таймер на 10 секунд после
- * load подхватывает случай, когда взаимодействия не было вовсе (такие
- * вкладки и так не конвертируются). Клик по кнопке WhatsApp сам по себе
+ * обвязка, которая грузит настоящий тег по первому скролу, касанию,
+ * клику или нажатию клавиши — то есть по первому признаку, что во
+ * вкладке вообще кто-то есть. Резервный таймер на 10 секунд после load
+ * подхватывает случай, когда взаимодействия не было вовсе (такие вкладки
+ * и так не конвертируются). Клик по кнопке WhatsApp сам по себе
  * взаимодействие, поэтому ни одна конверсия не теряется.
  *
  * Если оба PUBLIC_GA_ID и PUBLIC_ADS_ID пусты (штатный режим до запуска
@@ -34,12 +34,22 @@ const ADS_ID = import.meta.env.PUBLIC_ADS_ID ?? '';
  *
  * UTM-метки и gclid дописываются в текст сообщения WhatsApp на клиенте:
  * статический HTML не знает параметров запроса, а мастер должен видеть
- * источник заявки в первом же сообщении.
+ * источник заявки в первом же сообщении. Дописка сделана вручную через
+ * decodeURIComponent/encodeURIComponent, а не через URLSearchParams —
+ * URLSearchParams.set() сериализует по правилам
+ * application/x-www-form-urlencoded и кодирует пробел как "+", а не
+ * "%20". Раскодированный текст тогда приходит мастеру со знаками "+"
+ * вместо пробелов на всём платном трафике (единственном, ради которого
+ * сайт строится) — это тот же баг, что чинили в src/lib/links.ts в
+ * задаче 3, здесь он чуть не вернулся через клиентский код.
  *
- * Скрипт минифицирован в одну строку без комментариев ради общего
- * бюджета инлайн-JS (2 КБ на страницу, вместе с фолбэком анимаций из
- * RevealFallback.astro) — сам код и решения по нему описаны здесь, во
- * фронтматтере, откуда этот текст не попадает в сборку.
+ * Комментарии внутри самого скрипта — только там, где решение
+ * неочевидно; остальное объяснено здесь и не попадает в сборку.
+ *
+ * У скрипта ниже нет своего оборачивающего IIFE: define:vars уже
+ * оборачивает всё содержимое в свою function() (см. dist/index.html
+ * после сборки — `const GA_ID = ...` и код лежат в одной области
+ * видимости), так что var внутри и так не утекут в window.
  */
 ---
 
@@ -72,7 +82,78 @@ const ADS_ID = import.meta.env.PUBLIC_ADS_ID ?? '';
 
     <script type="application/ld+json" set:html={JSON.stringify(schema)} is:inline />
 
-    <script is:inline define:vars={{ GA_ID, ADS_ID }}>(function(){window.dataLayer=window.dataLayer||[];function gtag(){window.dataLayer.push(arguments)}window.gtag=gtag;var loaded=false;function loadTag(){if(loaded)return;loaded=true;var id=GA_ID||ADS_ID;if(!id)return;var s=document.createElement('script');s.async=true;s.src='https://www.googletagmanager.com/gtag/js?id='+id;document.head.appendChild(s);gtag('js',new Date());if(GA_ID)gtag('config',GA_ID);if(ADS_ID)gtag('config',ADS_ID)}['scroll','pointerdown','keydown','touchstart'].forEach(function(e){addEventListener(e,loadTag,{once:true,passive:true})});addEventListener('load',function(){setTimeout(loadTag,10000)});var q=new URLSearchParams(location.search);var marks=['gclid','utm_source','utm_medium','utm_campaign','utm_content','utm_term'].map(function(k){var v=q.get(k);return v?k+'='+v:null}).filter(Boolean);addEventListener('DOMContentLoaded',function(){if(marks.length){document.querySelectorAll('a[href*="wa.me"]').forEach(function(a){var u=new URL(a.href);u.searchParams.set('text',(u.searchParams.get('text')||'')+'\n\n['+marks.join(' ')+']');a.href=u.toString()})}});addEventListener('click',function(ev){var a=ev.target.closest&&ev.target.closest('a[data-cta]');if(!a)return;var isWa=a.href.indexOf('wa.me')>-1;gtag('event',isWa?'whatsapp_click':'phone_click',{source:a.getAttribute('data-cta')})},{capture:true})})();</script>
+    <script is:inline define:vars={{ GA_ID, ADS_ID }}>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        window.dataLayer.push(arguments);
+      }
+      window.gtag = gtag;
+
+      var tagLoaded = false;
+      function loadTag() {
+        if (tagLoaded) return;
+        tagLoaded = true;
+        var id = GA_ID || ADS_ID;
+        if (!id) return;
+        var tag = document.createElement('script');
+        tag.async = true;
+        tag.src = 'https://www.googletagmanager.com/gtag/js?id=' + id;
+        document.head.appendChild(tag);
+        gtag('js', new Date());
+        if (GA_ID) gtag('config', GA_ID);
+        if (ADS_ID) gtag('config', ADS_ID);
+      }
+
+      // Тег весит ~90 КБ и выполняется в главном потоке, поэтому не
+      // грузится сразу — ждём первого признака, что во вкладке кто-то
+      // есть. Резервный таймер длинный: вкладки без единого события за
+      // 10 секунд после load всё равно не конвертируются.
+      ['scroll', 'pointerdown', 'keydown', 'touchstart'].forEach(function (name) {
+        addEventListener(name, loadTag, { once: true, passive: true });
+      });
+      addEventListener('load', function () {
+        setTimeout(loadTag, 10000);
+      });
+
+      var params = new URLSearchParams(location.search);
+      var marks = ['gclid', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term']
+        .map(function (key) {
+          var value = params.get(key);
+          return value ? key + '=' + value : null;
+        })
+        .filter(Boolean);
+
+      addEventListener('DOMContentLoaded', function () {
+        if (!marks.length) return;
+
+        document.querySelectorAll('a[href*="wa.me"]').forEach(function (a) {
+          var href = a.getAttribute('href') || '';
+          var i = href.indexOf('text=');
+          if (i === -1) return;
+
+          var prefix = href.slice(0, i + 5);
+          var rest = href.slice(i + 5);
+          var amp = rest.indexOf('&');
+          var encodedText = amp === -1 ? rest : rest.slice(0, amp);
+          var suffix = amp === -1 ? '' : rest.slice(amp);
+
+          // Текст в ссылке закодирован через encodeURIComponent (см.
+          // src/lib/links.ts) — раскодируем и кодируем тем же способом,
+          // а не через URLSearchParams: его сериализатор кодирует пробел
+          // как "+", и на каждом переходе по рекламе с меткой мастер
+          // получал бы текст сообщения с плюсами вместо пробелов.
+          var text = decodeURIComponent(encodedText) + '\n\n[' + marks.join(' ') + ']';
+          a.href = prefix + encodeURIComponent(text) + suffix;
+        });
+      });
+
+      addEventListener('click', function (ev) {
+        var a = ev.target.closest && ev.target.closest('a[data-cta]');
+        if (!a) return;
+        var isWhatsapp = a.href.indexOf('wa.me') > -1;
+        gtag('event', isWhatsapp ? 'whatsapp_click' : 'phone_click', { source: a.getAttribute('data-cta') });
+      }, { capture: true });
+    </script>
   </head>
   <body class="font-sans">
     <slot />

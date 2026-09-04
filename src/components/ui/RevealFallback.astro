@@ -12,12 +12,38 @@
  * IntersectionObserver — полифилл не нужен и не трогает документ вовсе;
  * тогда лучше не скрывать контент, чем скрыть и не вернуть обратно.
  *
- * Скрипт внутри намеренно минифицирован в одну строку без комментариев:
- * весь клиентский JS сайта ограничен бюджетом 2 КБ суммарно на страницу
- * (см. src/layouts/Base.astro), и здесь каждый лишний байт в тексте
- * комментария конкурирует за этот бюджет с аналитикой. Комментарии в
- * этом файле — здесь, во фронтматтере, откуда они не попадают в сборку.
+ * Бюджет инлайн-JS на страницу — 4.5 КБ в сыром виде, суммарно с
+ * аналитикой из Base.astro (был 2 КБ, но экономия ценой нечитаемого кода
+ * себя не оправдала: минификация в одну строку экономила лишь ~600 байт
+ * до gzip и один раз уже спрятала баг от собственного чтения).
+ * Комментарии, которые не объясняют неочевидное прямо у кода — здесь, во
+ * фронтматтере, откуда они не попадают в сборку.
  */
 ---
 
-<script is:inline>(function(){if(CSS.supports('animation-timeline','view()'))return;if(!('IntersectionObserver'in window))return;if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;document.documentElement.classList.add('js-reveal');addEventListener('DOMContentLoaded',function(){var io=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;e.target.classList.add('is-visible');io.unobserve(e.target)})},{rootMargin:'0px 0px -10% 0px'});document.querySelectorAll('.reveal, .reveal-soft, .reveal-stagger').forEach(function(el){io.observe(el)})})})();</script>
+<script is:inline>
+  (function () {
+    if (CSS.supports('animation-timeline', 'view()')) return;
+    if (!('IntersectionObserver' in window)) return;
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    // Ставится синхронно, до первой отрисовки: CSS скрывает контент по
+    // этому классу, поэтому без него (скрипт не выполнился) правила
+    // скрытия просто не применятся, и контент останется видимым.
+    document.documentElement.classList.add('js-reveal');
+
+    addEventListener('DOMContentLoaded', function () {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add('is-visible');
+          io.unobserve(entry.target);
+        });
+      }, { rootMargin: '0px 0px -10% 0px' });
+
+      document.querySelectorAll('.reveal, .reveal-soft, .reveal-stagger').forEach(function (el) {
+        io.observe(el);
+      });
+    });
+  })();
+</script>
