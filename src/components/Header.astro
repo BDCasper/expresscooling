@@ -18,9 +18,19 @@ const logo = await getImage({ src: images.logoMonogram.src, width: 74, height: 7
 /**
  * Бургера в макете нет (node 1:471/1:923 — ссылки просто исчезают на
  * мобильном), поэтому навигация на узких экранах не сворачивается в
- * меню, а прячется целиком через hidden md:flex. Это единственное
- * решение и в макете, и здесь: страница остаётся без единого клиентского
- * компонента.
+ * меню, а прячется целиком. Это единственное решение и в макете, и здесь:
+ * страница остаётся без единого клиентского компонента.
+ *
+ * Порог показа — xl (1280px), а не md (768px). Натуральная (несжатая)
+ * ширина логотипа (~205) + навигации на 4 пункта с промежутком 28px
+ * (~499) + кнопки WhatsApp (~273) — около 977px плюс отступы контейнера.
+ * На md эта сумма физически не помещается вплоть до ~1050px (внутренняя
+ * ширина контейнера на 1024 — всего 944): текст логотипа наезжает на
+ * первый пункт навигации, последний пункт уезжает под кнопку. С xl=1280
+ * внутренняя ширина контейнера — 1200, всё встаёт свободно без переноса
+ * и наложений. Между md и xl в шапке остаются только логотип и кнопка —
+ * это осознанный второй брейкпоинт сверх заявленного md, оправданный тем,
+ * что перекрывающийся текст хуже одного лишнего класса.
  */
 const navLinks = [
   { href: '#polomki', label: 'Поломки' },
@@ -30,27 +40,12 @@ const navLinks = [
 ];
 ---
 
-<header class="sticky top-0 z-10 overflow-x-clip bg-graphite">
-  {
-    /*
-      overflow-x-clip — подстраховка ровно у порога md=768px: макет
-      «Header» рисован под широкий десктоп-контейнер (1320px), и на
-      логотип + четыре пункта навигации по 28px + пилюлю WhatsApp у самой
-      границы 768px попросту не хватает ширины (сумма их собственных
-      ширин — около 990px против 688px доступного места). flex-shrink
-      сжимает что может, но неразрывный текст кнопки WhatsApp всё равно
-      вылезает на несколько пикселей за пределы вьюпорта — без этой
-      подстраховки это единственное место, где появляется горизонтальная
-      прокрутка (проверка на ширинах 360/390/768/1024/1440/1920). Полноценно
-      это лечится только вторым брейкпоинтом или адаптивными gap/шрифтом
-      навигации, а тот и другой выходят за рамки задачи (см. отчёт).
-    */
-  }
+<header class="sticky top-0 z-10 bg-graphite">
   <Container>
     <div class="flex h-[84px] items-center justify-between">
       <a
         href="/"
-        class="flex items-center gap-[11px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber md:shrink-0"
+        class="flex items-center gap-1.5 md:gap-[11px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber"
       >
         <span
           role="img"
@@ -58,10 +53,30 @@ const navLinks = [
           class="h-[37px] w-[37px] shrink-0 rounded-[6.58px] bg-cover bg-center"
           style={`background-image:url(${logo.src})`}
         />
-        <span class="text-[21px] font-bold tracking-[-0.42px] text-chalk">Express Cooling</span>
+        {
+          /*
+            whitespace-nowrap безусловно, на всех ширинах: в мобильном узле
+            макета (1:923, кадр 395px) «Express Cooling» сам переносится на
+            «Express» / «Cooling», но по прямому требованию ревью текст
+            логотипа не должен переноситься ни на одной ширине — это
+            сознательное расхождение с макетом, а не то, что было упущено.
+
+            Совместить это с кнопкой WhatsApp на 390px без переноса и без
+            наложения потребовало ещё двух правок: gap-1.5 здесь вместо
+            исходных 11px (возвращается к 11px от md, где места достаточно
+            и сам логотип уже не в одной строке борьбы за ширину с кнопкой)
+            и такое же сужение в WhatsAppButton для size="sm" (см. его
+            комментарии). По отдельности зазор между иконкой и текстом
+            нигде в списке замечаний не зафиксирован пиксельно, в отличие
+            от padding/иконки кнопки, так что ужать именно его безопаснее
+            всего. Проверено скриншотом на 390px: оба текста в одну
+            строку, с видимым (не нулевым) зазором между ними.
+          */
+        }
+        <span class="whitespace-nowrap text-[21px] font-bold tracking-[-0.42px] text-chalk">Express Cooling</span>
       </a>
 
-      <nav aria-label="Основная навигация" class="hidden min-w-0 items-center gap-[28px] md:flex">
+      <nav aria-label="Основная навигация" class="hidden items-center gap-[28px] xl:flex">
         {
           navLinks.map((link) => (
             <a
@@ -74,7 +89,7 @@ const navLinks = [
         }
       </nav>
 
-      <WhatsAppButton source="header" label="Написать в WhatsApp" class="md:min-w-0" />
+      <WhatsAppButton source="header" label="Написать в WhatsApp" mobileLabel="WhatsApp" size="sm" class="min-w-0" />
     </div>
   </Container>
 </header>

@@ -50,7 +50,28 @@ test.describe('фолбэк анимации появления в браузе�
 
     await expect(page.locator('html')).toHaveClass(/js-reveal/);
 
+    // Пробник теперь лежит в конце страницы (см. index.astro), то есть вне
+    // первого экрана. IntersectionObserver ставит is-visible только когда
+    // элемент реально попадает во вьюпорт — это и есть проверяемое
+    // поведение фолбэка, а не удобство теста, поэтому докручиваем до
+    // пробника, а не полагаемся на то, что он виден без скролла.
+    //
+    // Обычный scrollIntoViewIfNeeded() здесь недостаточен: пробник — самый
+    // последний элемент страницы, и минимальная прокрутка до "видимости"
+    // ставит его ровно на нижнюю кромку вьюпорта. У IntersectionObserver
+    // задан rootMargin '0px 0px -10% 0px' (полифилл нарочно игнорирует
+    // последние 10% высоты вьюпорта снизу, чтобы не засчитывать элемент,
+    // едва показавшийся из-за края), поэтому элемент на самой кромке не
+    // пересекает зону срабатывания. Прокручиваем так, чтобы пробник встал
+    // ближе к центру вьюпорта — с запасом, как оказался бы обычный блок
+    // контента при живой прокрутке пользователем, а не тестовым минимумом.
     const probe = page.getByTestId('reveal-probe');
+    await probe.evaluate((el) => {
+      const rect = el.getBoundingClientRect();
+      const target = window.scrollY + rect.top - window.innerHeight / 2;
+      window.scrollTo(0, Math.max(target, 0));
+    });
+
     await expect(probe).toHaveClass(/is-visible/);
     await expect(probe).toHaveCSS('opacity', '1');
   });

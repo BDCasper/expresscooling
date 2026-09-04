@@ -1,6 +1,5 @@
 ---
 import { Image } from 'astro:assets';
-import Container from './ui/Container.astro';
 import Section from './ui/Section.astro';
 import WhatsAppButton from './ui/WhatsAppButton.astro';
 import PhoneButton from './ui/PhoneButton.astro';
@@ -21,90 +20,110 @@ import { heroImageSizes, heroImageWidths } from '../lib/heroImage';
  * slot="head" в выводе. Явный именованный слот в Base.astro — рабочий
  * вариант вместо этого.
  */
+
+/**
+ * Секция первого экрана — на всю ширину окна, а не внутри <Container>: в
+ * макете (node 1:8) фото упирается в правый край экрана без отступа.
+ * <Container> здесь не подходит — он центрирует блок с равными отступами
+ * с обеих сторон и обрезал бы фото до внутренней границы контейнера.
+ *
+ * Текстовая колонка вместо этого получает тот же отступ слева, что даёт
+ * Container (mx-auto max-w-[1320px] px-5 md:px-10): на мобильном — 20px
+ * (px-5), от lg и до 1320px окна — 40px (px-10), а после 1320px — половина
+ * остатка окна плюс те же 40px, чтобы текст оставался на одной вертикали
+ * с контейнером шапки. `max(40px, calc(...))` даёт ровно эту дугу без
+ * добавления отдельного брейкпоинта на 1320px.
+ *
+ * Порог переключения в две колонки — lg (1024px), а не md (768px), как
+ * везде в остальном макете. Причина: текстовая колонка не резиновая — её
+ * ширина держится содержимым (h1 максимум 567px), а не процентом, поэтому
+ * фото получает только то, что осталось. На 768-1023px это остаток в
+ * 100-230px — фото превращается в узкую полоску. Ниже lg макет остаётся
+ * одноколоночным (как на мобильном), с фото на всю ширину под текстом —
+ * для этого диапазона в макете нет отдельного разбора, но это те же
+ * пропорции, что уже одобрены для мобильного узла 1:495, только на более
+ * широком экране.
+ *
+ * Горизонтальный отступ текста при этом переключается по md (768px), как
+ * и у Container: до md — 20px (px-5), от md до lg — 40px (md:px-10, тот
+ * же паддинг, что использует Container на этой ширине), а от lg — та же
+ * формула, что и раньше. Если бы отступ ждал lg вместе с колонками, текст
+ * съезжал бы на 20px левее логотипа шапки (тот выровнен по Container,
+ * переключается на md) во всём диапазоне 768-1023px.
+ */
+const heroLeftGutter = 'lg:pl-[max(40px,calc((100vw-1320px)/2+40px))]';
 ---
 
 <Section tone="dark" id="hero" class="relative">
-  <Container>
-    <div class="flex flex-col md:flex-row md:items-stretch md:gap-x-[60px]">
-      <div class="reveal py-10 md:min-w-0 md:basis-[45%] md:py-16">
-        <p class="text-[14px] font-bold uppercase tracking-[2.24px] text-amber">Алматы, заявки с 6:00</p>
+  <div class="flex flex-col lg:flex-row lg:items-stretch lg:gap-x-[60px]">
+    <div class={`reveal px-5 py-10 md:px-10 lg:px-0 lg:py-16 ${heroLeftGutter}`}>
+      <p class="text-[14px] font-bold uppercase tracking-[2.24px] text-amber">Алматы, заявки с 6:00</p>
 
-        <h1
-          data-testid="page-title"
-          class="mt-[18px] max-w-[567px] text-[40px] font-bold leading-[40.8px] tracking-[-1.4px] text-chalk md:text-[66px] md:leading-[67.32px] md:tracking-[-2.31px]"
-        >
-          Холодильник чинит тот, кто взял трубку
-        </h1>
+      <h1
+        data-testid="page-title"
+        class="mt-[18px] max-w-[567px] text-[40px] font-bold leading-[40.8px] tracking-[-1.4px] text-chalk lg:text-[66px] lg:leading-[67.32px] lg:tracking-[-2.31px]"
+      >
+        Холодильник чинит тот, кто взял трубку
+      </h1>
 
-        <p class="mt-[22px] max-w-[481px] text-[19px] leading-[30.02px] text-chalk-body">
-          {/*
-            Макет: «Выезд по городу за 40-90 минут…». Число подставляется из
-            site.responseTime («40-90 мин») вместо буквального «40-90
-            минут» из макета: правило проекта запрещает вписывать время
-            отклика в разметку напрямую, а держать одно и то же число
-            продублированным двумя строками — источник рассинхронизации,
-            если оно поменяется в site.ts.
-          */}
-          Звонки принимают сами мастера. Выезд по городу за {site.responseTime}, стоимость работ называем до начала
-          ремонта.
-        </p>
+      <p class="mt-[22px] max-w-[481px] text-[19px] leading-[30.02px] text-chalk-body">
+        {/*
+          Макет: «Выезд по городу за 40-90 минут…». Число подставляется из
+          site.responseTime («40-90 мин») вместо буквального «40-90
+          минут» из макета: правило проекта запрещает вписывать время
+          отклика в разметку напрямую, а держать одно и то же число
+          продублированным двумя строками — источник рассинхронизации,
+          если оно поменяется в site.ts.
+        */}
+        Звонки принимают сами мастера. Выезд по городу за {site.responseTime}, стоимость работ называем до начала
+        ремонта.
+      </p>
 
-        <div class="mt-[34px] flex flex-wrap gap-[14px]">
-          <WhatsAppButton source="hero" />
-          <PhoneButton source="hero" />
-        </div>
-
-        <div class="mt-[46px] flex flex-wrap gap-x-14 gap-y-6 border-t border-white/13 pt-[31px]">
-          <div>
-            <p class="text-[27px] font-extrabold tracking-[-0.756px] text-amber md:text-[40px] md:tracking-[-1.12px]">
-              {site.hours.label}
-            </p>
-            <p class="mt-[9px] max-w-[246px] text-[16.785px] leading-[23.499px] text-chalk-muted">
-              Принимаем заявки каждый день
-            </p>
-          </div>
-          <div>
-            <p class="text-[27px] font-extrabold tracking-[-0.756px] text-amber md:text-[40px] md:tracking-[-1.12px]">
-              {site.responseTime}
-            </p>
-            <p class="mt-[9px] max-w-[246px] text-[16.785px] leading-[23.499px] text-chalk-muted">
-              Обычное время выезда по городу
-            </p>
-          </div>
-        </div>
+      <div class="mt-[34px] flex flex-wrap gap-[14px]">
+        <WhatsAppButton source="hero" />
+        <PhoneButton source="hero" />
       </div>
 
-      <div
-        class="reveal-soft relative -mx-5 h-[300px] shrink-0 overflow-hidden rounded-bl-hero md:mx-0 md:h-auto md:min-w-0 md:basis-[55%]"
-      >
-        {
-          /*
-            На мобильном фото — во всю ширину экрана (макет 1:491), без
-            бокового отступа Container: -mx-5 гасит его px-5 у себя, а
-            md:mx-0 возвращает нормальный отступ на десктопе, где фото —
-            вторая колонка внутри контейнера, а не край в край.
-          */
-        }
-        <Image
-          src={images.heroMaster.src}
-          alt={images.heroMaster.alt}
-          width={2200}
-          height={1228}
-          widths={heroImageWidths}
-          sizes={heroImageSizes}
-          format="avif"
-          loading="eager"
-          fetchpriority="high"
-          class="h-full w-full object-cover object-[92%_50%]"
-        />
+      <div class="mt-[46px] flex flex-wrap gap-x-14 gap-y-6 border-t border-white/13 pt-[31px]">
+        <div>
+          <p class="text-[27px] font-extrabold tracking-[-0.756px] text-amber lg:text-[40px] lg:tracking-[-1.12px]">
+            {site.hours.label}
+          </p>
+          <p class="mt-[9px] max-w-[246px] text-[16.785px] leading-[23.499px] text-chalk-muted">
+            Принимаем заявки каждый день
+          </p>
+        </div>
+        <div>
+          <p class="text-[27px] font-extrabold tracking-[-0.756px] text-amber lg:text-[40px] lg:tracking-[-1.12px]">
+            {site.responseTime}
+          </p>
+          <p class="mt-[9px] max-w-[246px] text-[16.785px] leading-[23.499px] text-chalk-muted">
+            Обычное время выезда по городу
+          </p>
+        </div>
       </div>
     </div>
-  </Container>
+
+    <div class="reveal-soft relative h-[300px] shrink-0 overflow-hidden rounded-bl-hero lg:h-auto lg:min-w-0 lg:flex-1">
+      <Image
+        src={images.heroMaster.src}
+        alt={images.heroMaster.alt}
+        width={2200}
+        height={1228}
+        widths={heroImageWidths}
+        sizes={heroImageSizes}
+        format="avif"
+        loading="eager"
+        fetchpriority="high"
+        class="h-full w-full object-cover object-[92%_50%]"
+      />
+    </div>
+  </div>
 
   <a
     href="#polomki"
     aria-label="Смотреть частые поломки"
-    class="absolute bottom-0 left-1/2 z-10 hidden h-[68px] w-[68px] -translate-x-1/2 translate-y-1/2 items-center justify-center rounded-full bg-amber shadow-[0_0_0_10px_var(--color-graphite)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-chalk md:flex"
+    class="absolute bottom-0 left-1/2 z-10 hidden h-[68px] w-[68px] -translate-x-1/2 translate-y-1/2 items-center justify-center rounded-full bg-amber shadow-[0_0_0_10px_var(--color-graphite)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-chalk lg:flex"
   >
     <Icon name="icon-scroll-down" size={22} />
   </a>

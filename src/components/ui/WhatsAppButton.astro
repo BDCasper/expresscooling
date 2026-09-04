@@ -6,20 +6,61 @@ interface Props {
   /** Метка источника для аналитики: hero, card-<slug>, footer */
   source: string;
   variant?: 'solid' | 'inline';
+  /**
+   * Размер варианта solid: `md` (56px, дефолт — hero и большинство мест) или
+   * `sm` (46px — шапка, node 1:471/1:923). Разница не только в высоте, но и
+   * в горизонтальных отступах и размере значка — все три числа заданы
+   * дизайнером отдельно для узкой пилюли, не пропорциональным уменьшением.
+   */
+  size?: 'md' | 'sm';
   label?: string;
+  /**
+   * Короткая подпись для мобильных ширин (< md), например «WhatsApp» вместо
+   * «Написать в WhatsApp» — так в шапке на макете 1:923. По умолчанию равна
+   * `label`, то есть ничего не меняется для мест, где короткий вариант не
+   * нужен. Рендерятся оба варианта одной ссылкой (см. ниже), не двумя
+   * инстансами компонента — второй набор data-cta задвоил бы клики в
+   * аналитике.
+   */
+  mobileLabel?: string;
   class?: string;
 }
 
-const { source, variant = 'solid', label = 'Написать в WhatsApp', class: className = '' } = Astro.props;
+const {
+  source,
+  variant = 'solid',
+  size = 'md',
+  label = 'Написать в WhatsApp',
+  mobileLabel = label,
+  class: className = '',
+} = Astro.props;
 
 const base =
-  'inline-flex items-center gap-3 font-semibold transition-[background-color,box-shadow,transform] duration-200 ease-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber';
+  'inline-flex items-center font-semibold transition-[background-color,box-shadow,transform] duration-200 ease-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber';
+
+/**
+ * Зазор между иконкой и текстом — часть solidSizes, а не base: для `sm`
+ * (шапка) ниже md он уже, чем стандартный gap-3 (gap-1), чтобы на 390px
+ * короткая подпись `mobileLabel` помещалась в одну строку рядом с
+ * обязательно-нерасходной (см. Header.astro) надписью логотипа — там
+ * оба текста впритык делят одну строку шапки. От md кнопка показывает
+ * полный `label`, а логотип уже не соперничает с ней за одну и ту же
+ * узкую строку, поэтому там зазор возвращается к обычным gap-3. Сам
+ * зазор нигде не задан пиксельно в списке замечаний (в отличие от
+ * padding/высоты/иконки), поэтому именно им безопаснее всего
+ * пожертвовать на самой тесной ширине.
+ */
+const solidSizes = {
+  md: 'h-14 gap-3 pl-9 pr-6 text-[18px]',
+  sm: 'h-[46px] gap-1 md:gap-3 pl-[29px] pr-[21px] text-[17px]',
+};
 
 const variants = {
-  solid:
-    'rounded-pill bg-wa text-wa-ink pl-9 pr-6 h-14 text-[18px] hover:bg-[#2ee070] hover:shadow-[0_8px_24px_-8px_rgba(37,211,102,0.6)]',
-  inline: 'text-wa-ink/90 text-[17px] hover:gap-4',
+  solid: `rounded-pill bg-wa text-wa-ink hover:bg-[#2ee070] hover:shadow-[0_8px_24px_-8px_rgba(37,211,102,0.6)] ${solidSizes[size]}`,
+  inline: 'gap-3 text-wa-ink/90 text-[17px] hover:gap-4',
 };
+
+const iconSize = size === 'sm' ? 19 : 21;
 ---
 
 <a
@@ -29,6 +70,33 @@ const variants = {
   rel="noopener noreferrer"
   class={`${base} ${variants[variant]} ${className}`}
 >
-  <Icon name="icon-whatsapp-button" size={21} />
-  <span>{label}</span>
+  <Icon name="icon-whatsapp-button" size={iconSize} />
+  <span class="hidden md:inline">{label}</span>
+  {
+    /*
+      whitespace-nowrap — короткая подпись обязана остаться в одну строку
+      (см. комментарий у логотипа в Header.astro: то же требование ревью).
+      Раньше здесь стоял break-words как аварийный клапан на случай, если
+      места не хватит, — при mobileLabel="WhatsApp" в шапке на 390px это
+      реально случалось, и слово ломалось посередине («WhatsAp» / «p»), а
+      не просто переносилось. Правильное решение — не ловить нехватку
+      места переносом, а убрать её (см. gap-1 у solidSizes.sm выше и
+      gap-1.5 у логотипа в Header.astro), и требовать нужную строку явно
+      через nowrap, а не подстраховываться поломкой слова.
+
+      text-[14px] вместо унаследованных 17px — тоже часть того же бюджета
+      места: на 390px после фиксированных значка/паддингов (item 4:
+      19/29/21) и нерезинового текста логотипа рядом почти не остаётся
+      места для текста кнопки. С 17px и даже с 15px запас получался
+      нулевым или в районе 1px — элементы визуально соприкасались с
+      логотипом без видимого зазора. 14px даёт настоящий, а не
+      теоретический зазор (~8px на 390px, проверено скриншотом). Размер
+      шрифта нигде в списке замечаний не зафиксирован — только паддинги,
+      высота и значок — поэтому именно им безопасно пожертвовать здесь,
+      не трогая соответствие макету по остальным четырём числам. Только
+      для короткой подписи: полный `label` от md сохраняет унаследованные
+      17px.
+    */
+  }
+  <span class="whitespace-nowrap text-[14px] md:hidden">{mobileLabel}</span>
 </a>
