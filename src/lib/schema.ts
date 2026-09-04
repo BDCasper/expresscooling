@@ -11,7 +11,7 @@ export function buildLocalBusinessSchema(ogImageUrl: string) {
     '@type': 'LocalBusiness',
     name: site.name,
     description:
-      'Ремонт холодильников и холодильного оборудования в Алматы. Звонки принимают сами мастера, выезд по городу за 40-90 минут, стоимость работ называем до начала ремонта.',
+      `Ремонт холодильников и холодильного оборудования в ${site.city}. Звонки принимают сами мастера, выезд по городу за ${site.responseTime}, стоимость работ называем до начала ремонта.`,
     url: site.url,
     image: ogImageUrl,
     telephone: site.phones.map((p) => p.raw),

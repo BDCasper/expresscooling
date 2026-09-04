@@ -142,7 +142,7 @@ const html = `<!doctype html>
 <body>
   <div class="panel">
     <div class="brand">
-      <img src="${monogramUrl}" alt="" />
+      <img src="${monogramUrl}" alt="" data-check="монограмма (src/assets/images/logo-ec-monogram.png)" />
       <span>Express Cooling</span>
     </div>
     <h1>${HEADLINE}</h1>
@@ -153,7 +153,7 @@ const html = `<!doctype html>
   </div>
   <div class="photo">
     <div class="seam"></div>
-    <img src="${heroUrl}" alt="" />
+    <img src="${heroUrl}" alt="" data-check="фото мастера (src/assets/images/hero-master.jpg)" />
   </div>
 </body>
 </html>`;
@@ -167,6 +167,34 @@ try {
   const page = await browser.newPage({ viewport: { width: 1200, height: 630 }, deviceScaleFactor: 1 });
   await page.goto(pathToFileURL(tmpHtmlPath).href);
   await page.evaluate(() => document.fonts.ready);
+
+  // Проверка, что каждая картинка реально отрисовалась, а не просто не
+  // выбросила ошибку сети (file:// на несуществующий путь молча даёт
+  // сломанный <img> с naturalWidth 0 — скриншот при этом снимается
+  // без единой ошибки, и битое изображение уезжает в соцсети никем не
+  // замеченным).
+  const brokenImages = await page.evaluate(async () => {
+    const imgs = Array.from(document.querySelectorAll('img[data-check]'));
+    await Promise.all(
+      imgs.map((img) =>
+        img.complete
+          ? Promise.resolve()
+          : new Promise((resolve) => {
+              img.addEventListener('load', resolve, { once: true });
+              img.addEventListener('error', resolve, { once: true });
+            }),
+      ),
+    );
+    return imgs
+      .filter((img) => img.naturalWidth === 0)
+      .map((img) => ({ label: img.dataset.check, src: img.getAttribute('src') }));
+  });
+
+  if (brokenImages.length > 0) {
+    const details = brokenImages.map((b) => `  - ${b.label}\n    путь: ${b.src}`).join('\n');
+    throw new Error(`og-image: не загрузилось ${brokenImages.length} изображение(й) — проверь путь(и):\n${details}`);
+  }
+
   pngBuffer = await page.screenshot({ type: 'png' });
 } finally {
   await browser.close();
