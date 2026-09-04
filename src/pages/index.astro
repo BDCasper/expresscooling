@@ -5,6 +5,8 @@ import Header from '../components/Header.astro';
 import Hero from '../components/Hero.astro';
 import FactsBar from '../components/FactsBar.astro';
 import Breakages from '../components/Breakages.astro';
+import HowItWorks from '../components/HowItWorks.astro';
+import Equipment from '../components/Equipment.astro';
 import WhatsAppButton from '../components/ui/WhatsAppButton.astro';
 import PhoneButton from '../components/ui/PhoneButton.astro';
 import Icon from '../components/ui/Icon.astro';
@@ -44,14 +46,15 @@ const heroPreload = await getImage({
     <Hero />
     <FactsBar />
     <Breakages />
+    <HowItWorks />
+    <Equipment />
 
-    <!-- Заглушки якорей шапки: настоящие секции появятся в задачах 9-10,
+    <!-- Заглушка якоря шапки: настоящая секция появится в задаче 10,
          сборка index.astro со всеми секциями — в задаче 12. Тест
          tests/e2e/header-hero.spec.ts проверяет, что все 4 ссылки навигации
-         ведут в существующие узлы уже сейчас. Якорь #polomki теперь живёт
-         внутри <Breakages> (Section id="polomki"), а не заглушкой здесь. -->
-    <div id="kak-rabotaem"></div>
-    <div id="oborudovanie"></div>
+         ведут в существующие узлы уже сейчас. Якоря #polomki, #kak-rabotaem
+         и #oborudovanie теперь живут внутри своих <Section>, а не
+         заглушками здесь. -->
     <div id="dlya-biznesa"></div>
   </main>
 

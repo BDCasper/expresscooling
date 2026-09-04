@@ -1,0 +1,49 @@
+---
+import Section from './ui/Section.astro';
+import Container from './ui/Container.astro';
+import SectionHeading from './ui/SectionHeading.astro';
+import Icon from './ui/Icon.astro';
+
+/**
+ * Три шага (node 1:211). Иконки — бронза #8A6100 на кремовом фоне
+ * (icon-speech-bubble/icon-price-tag-light/icon-wrench, см. комментарий
+ * в Icon.astro), тексты дословно из get_design_context.
+ */
+const steps = [
+  {
+    icon: 'icon-speech-bubble',
+    title: 'Отвечает мастер',
+    text: 'Трубку берёт тот, кто приедет. Опишите симптом своими словами, и мастер соберёт сумку под вашу поломку: реле, датчики, ТЭН оттайки, вентилятор.',
+  },
+  {
+    icon: 'icon-price-tag-light',
+    title: 'Цена до работ',
+    text: 'Вскрываем узел, находим причину, называем стоимость и объём до того, как что-то откручено. Диагностика от 3500 ₸, выезд отдельно не считаем.',
+  },
+  {
+    icon: 'icon-wrench',
+    title: 'Чиним в тот же выезд',
+    text: 'Компрессоры, пуско-защитные реле, термостаты, ТЭНы оттайки и вентиляторы лежат на своём складе. За деталью не уезжаем.',
+  },
+];
+---
+
+<Section tone="light" id="kak-rabotaem" dataSection="how-it-works">
+  <Container>
+    <div class="py-16 md:py-[104px]">
+      <SectionHeading title="Как проходит выезд" />
+
+      <div class="reveal-stagger mt-11 grid grid-cols-1 gap-8 md:mt-[44px] md:grid-cols-3 md:gap-12">
+        {
+          steps.map((step) => (
+            <div data-step class="border-t border-black/12 pt-[27px]">
+              <Icon name={step.icon} size={30} class="mb-4" />
+              <h3 class="text-[24px] font-bold leading-[30px] tracking-[-0.288px] text-ink">{step.title}</h3>
+              <p class="mt-2 text-[18px] leading-[28.44px] text-ink-muted">{step.text}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </Container>
+</Section>

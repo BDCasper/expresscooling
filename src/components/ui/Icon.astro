@@ -26,9 +26,19 @@ interface Props {
   name: string;
   size?: number;
   class?: string;
+  /**
+   * Доступное имя, когда иконка сама несёт смысл, а не просто украшает уже
+   * читаемый рядом текст — единственный такой случай в проекте: логотипы
+   * брендов без подписи в BrandList (LG, Samsung, Bosch, Hitachi — поисковик
+   * содержимое SVG не читает, а слов бренда на самом рисунке иногда нет,
+   * см. Bosch). По умолчанию иконка остаётся декоративной (aria-hidden,
+   * как раньше); передав ariaLabel, получаем role="img" + aria-label
+   * вместо aria-hidden — свою пару на каждый вызов, не общую на компонент.
+   */
+  ariaLabel?: string;
 }
 
-const { name, size = 24, class: className = '' } = Astro.props;
+const { name, size = 24, class: className = '', ariaLabel } = Astro.props;
 
 const files = import.meta.glob<string>('../../assets/icons/*.svg', {
   query: '?raw',
@@ -70,9 +80,13 @@ const withUniqueIds = raw
 // съест то, что только что вставили (а заодно и width/height у вложенных
 // элементов вроде <rect> в clipPath, поэтому правим только открывающий тег
 // корневого <svg>, а не весь документ).
+const a11yAttrs = ariaLabel
+  ? `role="img" aria-label="${ariaLabel.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}"`
+  : `aria-hidden="true" focusable="false"`;
+
 const markup = withUniqueIds.replace(/<svg\b([^>]*)>/, (_match, attrs: string) => {
   const withoutSize = attrs.replace(/\s(width|height)="[^"]*"/g, '');
-  return `<svg${withoutSize} width="${size}" height="${size}" aria-hidden="true" focusable="false">`;
+  return `<svg${withoutSize} width="${size}" height="${size}" ${a11yAttrs}>`;
 });
 ---
 

@@ -1,0 +1,154 @@
+---
+import { Image } from 'astro:assets';
+import Section from './ui/Section.astro';
+import Container from './ui/Container.astro';
+import SectionHeading from './ui/SectionHeading.astro';
+import Icon from './ui/Icon.astro';
+import BrandList from './BrandList.astro';
+import { images } from '../data/assets';
+import { equipment } from '../data/equipment';
+
+/**
+ * Размер запроса для astro:assets: близко к максимальному месту показа на
+ * десктопе (821×330 у крупных карточек, 403×330 у узких), взято с запасом
+ * на плотные экраны. Мобильная раскладка (350×196/233) те же файлы просто
+ * кадрирует через object-cover — отдельного набора под мобильный не нужно
+ * (так же в BreakageCard.astro).
+ */
+const requestSize = { large: { width: 1100, height: 442 }, small: { width: 700, height: 573 } } as const;
+---
+
+<Section tone="dark" id="oborudovanie" dataSection="equipment" class="relative overflow-hidden">
+  {
+    /*
+      Тёплый декоративный градиент (node 1:247/1:248) — в макете это пять
+      слоёв размытых радиальных подсветок разного цвета и силы поверх
+      графита. Даже без blur радиальные градиенты сами по себе мягкие
+      (плавный fade-out к прозрачности), поэтому воспроизведено чистым CSS
+      без blur-фильтра — на большом слое он дорог для перерисовки при
+      скролле/анимациях, а визуальной разницы почти нет. Чисто декоративно,
+      поэтому aria-hidden и вне потока (position: absolute, за контентом).
+    */
+  }
+  <div
+    aria-hidden="true"
+    class="pointer-events-none absolute inset-0"
+    style={`background-image:
+        radial-gradient(600px 500px at 88% 8%, rgba(239,183,38,0.1), transparent 70%),
+        radial-gradient(560px 480px at 96% 52%, rgba(255,214,120,0.08), transparent 72%),
+        radial-gradient(700px 620px at 62% 92%, rgba(120,190,255,0.06), transparent 74%),
+        radial-gradient(500px 440px at 24% 12%, rgba(255,255,255,0.03), transparent 70%),
+        radial-gradient(760px 680px at 8% 74%, rgba(239,183,38,0.04), transparent 76%);`}
+  />
+
+  <Container class="relative">
+    <div class="py-16 md:py-[104px]">
+      <SectionHeading eyebrow="Оборудование" title="Что берём в работу" tone="dark" />
+
+      <div class="reveal-soft mt-11 grid grid-cols-1 gap-4 md:mt-[44px] md:grid-cols-3">
+        {
+          equipment.map((item) => {
+            const image = item.imageKey ? images[item.imageKey] : undefined;
+            const size = requestSize[item.size];
+            const spanClass = item.size === 'large' ? 'md:col-span-2' : '';
+
+            /*
+              Заголовок узких карточек (22px, node 1:268/1:275/1:738) не
+              меняется по брейкпоинтам. У крупных на мобильном макете —
+              свой промежуточный размер 25px (node 1:726/1:750), а не 30px
+              из десктопа (node 1:261/1:287): у мобильной карточки высота
+              всего 196/233px против 330px на десктопе, с 30px и переносом
+              на две строки заголовок выезжает в ещё не затемнённую
+              градиентом часть фото и становится нечитаемым.
+            */
+            const titleClass =
+              item.size === 'large'
+                ? 'text-[25px] leading-[28.75px] tracking-[-0.5px] md:text-[30px] md:leading-[34.5px] md:tracking-[-0.6px]'
+                : 'text-[22px] leading-[26.4px]';
+
+            /*
+              Тот же приём для описания: 16px/24 на мобильном (node
+              1:728/1:734/1:752), 16.785px/25.177 от md (node 1:263/1:270/
+              1:289) — на мобильном чуть меньше, чтобы четыре строки под
+              крупным заголовком уместились в 196px без переполнения.
+            */
+            const descClass = 'text-[16px] leading-[24px] md:max-w-[380px] md:text-[16.785px] md:leading-[25.177px]';
+
+            return image ? (
+              <div
+                data-equipment
+                class={`group relative h-[196px] overflow-hidden rounded-[20px] md:h-[330px] ${spanClass}`}
+              >
+                <Image
+                  src={image.src}
+                  alt={image.alt}
+                  width={size.width}
+                  height={size.height}
+                  format="avif"
+                  loading="lazy"
+                  class="absolute inset-0 h-full w-full object-cover transition-transform duration-200 ease-soft group-hover:scale-[1.03]"
+                />
+                <div class="equipment-photo-overlay absolute inset-0" />
+                <div class="relative flex h-full flex-col justify-end p-[20px] md:p-[26px]">
+                  <h3 class={`font-semibold text-chalk ${titleClass}`}>{item.title}</h3>
+                  <p class={`mt-[7px] text-chalk-body ${descClass}`}>{item.description}</p>
+                </div>
+              </div>
+            ) : (
+              <div
+                data-equipment
+                class={`flex h-[233px] flex-col justify-end rounded-[20px] bg-amber p-[20px] md:h-[330px] md:p-[26px] ${spanClass}`}
+              >
+                {item.iconName && <Icon name={item.iconName} size={30} class="mb-3" />}
+                <h3 class={`font-semibold text-graphite ${titleClass}`}>{item.title}</h3>
+                <p class={`mt-[7px] text-graphite/74 ${descClass}`}>{item.description}</p>
+              </div>
+            );
+          })
+        }
+      </div>
+
+      <p class="reveal mt-9 text-[17px] leading-[26.86px] text-chalk-muted md:mt-[34px]">
+        Ремонтируем технику этих марок:
+      </p>
+      <div class="reveal mt-5">
+        <BrandList />
+      </div>
+    </div>
+  </Container>
+</Section>
+
+<style>
+  /*
+    Затемняющий градиент поверх фото карточек (node 1:258/1:265/1:272 —
+    десктоп, 17.308/50/82.212/100% — мобильный набор узлов 1:723/1:729/
+    1:735). На мобильном карточка втрое ниже (196px против 330px), поэтому
+    у мобильного градиента те же самые цвета доходят до тёмных значений
+    гораздо раньше по высоте — иначе низкая карточка не успевает
+    затемниться, и текст размывается о светлый фон фото (см. комментарий
+    у titleClass выше).
+  */
+  .equipment-photo-overlay {
+    background-image: linear-gradient(
+      180deg,
+      rgba(20, 20, 20, 0) 17.308%,
+      rgba(20, 20, 20, 0.72) 50%,
+      rgba(20, 20, 20, 0.92) 82.212%,
+      rgba(20, 20, 20, 0.97) 100%
+    );
+  }
+
+  @media (min-width: 768px) {
+    .equipment-photo-overlay {
+      background-image: linear-gradient(
+        180deg,
+        rgba(20, 20, 20, 0) 24%,
+        rgba(20, 20, 20, 0.2) 36%,
+        rgba(20, 20, 20, 0.56) 46%,
+        rgba(20, 20, 20, 0.85) 56%,
+        rgba(20, 20, 20, 0.94) 72%,
+        rgba(20, 20, 20, 0.96) 100%
+      );
+    }
+  }
+</style>

@@ -1,0 +1,27 @@
+---
+import Icon from './ui/Icon.astro';
+import { brands } from '../data/brands';
+
+/**
+ * Ряд из двенадцати брендов (node 1:292). Первые четыре — значком-логотипом
+ * без подписи рядом (так в макете), поэтому у иконки самой есть доступное
+ * имя через Icon.ariaLabel — не декоративный aria-hidden, как везде
+ * остальные значки сайта. У Bosch на самом рисунке нет даже слова «BOSCH»
+ * (только якорный символ в круге), так что это единственный источник
+ * текстового эквивалента у бренда, а не просто подстраховка.
+ */
+---
+
+<div class="grid grid-cols-2 gap-[10px] md:grid-cols-6">
+  {
+    brands.map((brand) => (
+      <div data-brand class="flex h-[66px] items-center justify-center rounded-[12px] border border-[rgba(128,128,128,0.3)] px-[15px]">
+        {brand.iconKey ? (
+          <Icon name={brand.iconKey} size={brand.iconSize ?? 32} ariaLabel={brand.name} />
+        ) : (
+          <p class="whitespace-nowrap text-[14px] font-bold tracking-[0.98px] text-chalk uppercase">{brand.name}</p>
+        )}
+      </div>
+    ))
+  }
+</div>
