@@ -1,0 +1,52 @@
+---
+import Section from './ui/Section.astro';
+import Container from './ui/Container.astro';
+import SectionHeading from './ui/SectionHeading.astro';
+import WhatsAppButton from './ui/WhatsAppButton.astro';
+import BreakageCard from './BreakageCard.astro';
+import { breakages } from '../data/breakages';
+
+const featured = breakages.filter((b) => b.featured);
+const rest = breakages.filter((b) => !b.featured);
+---
+
+<Section tone="light" id="polomki" dataSection="breakages">
+  <Container>
+    <div class="py-16 md:py-[104px]">
+      <SectionHeading
+        eyebrow="Что случилось"
+        title="Выберите поломку"
+        lead="Под каждой поломкой написано, что за ней стоит и что мы проверяем. Выберите свою, и мастер поедет уже с нужными деталями."
+      />
+
+      <div class="reveal-stagger mt-11 grid grid-cols-1 gap-2.5 md:grid-cols-4 md:gap-4">
+        {featured.map((breakage) => <BreakageCard breakage={breakage} size="large" />)}
+      </div>
+
+      <h3 class="mt-12 text-[24px] font-semibold tracking-[-0.288px] text-ink-muted md:mt-[52px]">Другие поломки</h3>
+
+      <div class="reveal-stagger mt-5 grid grid-cols-1 gap-2.5 md:grid-cols-4 md:gap-4">
+        {rest.map((breakage) => <BreakageCard breakage={breakage} size="small" />)}
+      </div>
+
+      {
+        /*
+          Широкая карточка «Другая поломка» — не переиспользует BreakageCard
+          (нет фото, другая раскладка, кнопка WhatsApp здесь solid, а не
+          inline, как у восьми карточек поломок выше). Мобильный макет
+          (node 1:667) ставит текст и кнопку в колонку с кнопкой на всю
+          ширину, десктопный (node 1:200) — в ряд с кнопкой справа.
+        */
+      }
+      <div class="mt-6 flex flex-col gap-6 rounded-card border border-black/10 bg-white px-6 py-7 md:mt-6 md:flex-row md:items-center md:justify-between md:px-[33px] md:py-[29px]">
+        <div>
+          <p class="text-[22px] font-bold leading-[1.25] text-ink">Другая поломка или не поняли, что случилось</p>
+          <p class="mt-2 text-[18px] leading-[1.5] text-ink-muted">
+            Опишите своими словами. Мастер ответит и скажет, что будет проверять на месте.
+          </p>
+        </div>
+        <WhatsAppButton source="card-other" class="w-full justify-center md:w-auto" />
+      </div>
+    </div>
+  </Container>
+</Section>

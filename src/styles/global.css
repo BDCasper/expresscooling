@@ -117,6 +117,11 @@ body {
       animation-timeline: view();
       animation-range: entry 8% cover 30%;
     }
+    /* Задержки для второго-четвёртого элемента — каскад читается слева
+       направо/сверху вниз, а не все карточки одновременно (Task 8). */
+    .reveal-stagger > *:nth-child(2) { animation-delay: 60ms; }
+    .reveal-stagger > *:nth-child(3) { animation-delay: 120ms; }
+    .reveal-stagger > *:nth-child(4) { animation-delay: 180ms; }
   }
 
   /*

@@ -1,0 +1,54 @@
+---
+import Section from './ui/Section.astro';
+import Container from './ui/Container.astro';
+import Icon from './ui/Icon.astro';
+import { site } from '../data/site';
+
+/**
+ * Порядок и иконки — node 1:36. Значения проверены по SVG в
+ * src/assets/icons: icon-price-tag — ярлык цены, icon-card — карточка с
+ * двумя перегородками (категории), icon-snowflake — снежинка (типы
+ * поломок, холодильная тема), icon-grid — сетка полок (свой склад).
+ * Первое значение — из site.diagnosticsFrom, а не хардкод из макета: цена
+ * не должна дублироваться в разметке (см. task-8-brief и глобальные
+ * ограничения проекта).
+ */
+const facts = [
+  {
+    icon: 'icon-price-tag',
+    value: site.diagnosticsFrom,
+    label: 'Диагностика, выезд бесплатный',
+  },
+  {
+    icon: 'icon-card',
+    value: '4 категории',
+    label: 'От бытовых до промышленных',
+  },
+  {
+    icon: 'icon-snowflake',
+    value: '8 типов поломок',
+    label: 'Под каждым описано, что проверяем',
+  },
+  {
+    icon: 'icon-grid',
+    value: 'Свой склад',
+    label: 'Запчасти держим у себя',
+  },
+];
+---
+
+<Section tone="soft" dataSection="facts">
+  <Container>
+    <div class="grid grid-cols-2 gap-x-[26px] gap-y-9 py-9 md:grid-cols-4 md:gap-x-11 md:gap-y-0 md:py-[70px]">
+      {
+        facts.map((fact) => (
+          <div>
+            <Icon name={fact.icon} size={30} />
+            <p class="mt-4 text-[22px] font-bold tracking-[-0.22px] text-chalk">{fact.value}</p>
+            <p class="mt-[7px] max-w-[277px] text-[17px] leading-[1.45] text-chalk-muted">{fact.label}</p>
+          </div>
+        ))
+      }
+    </div>
+  </Container>
+</Section>
