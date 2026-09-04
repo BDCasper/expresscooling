@@ -57,19 +57,49 @@ describe('site', () => {
     expect(containsPlaceholderPhone(site)).toBe(false);
   });
 
-  it('барьер срабатывает: ловит заглушку в человеческом формате', () => {
-    // Симулируем случай когда номер скопирован из Figma в display с пробелами
-    const fakeData = {
+  it('барьер срабатывает: ловит заглушку в разных форматах', () => {
+    // Тестируем что барьер ловит одну и ту же заглушку в разных форматах записи
+    // (не совпадающих с константой PLACEHOLDER_PHONES по форматированию).
+    // Каждый тест должен краситься при наивной проверке без нормализации.
+
+    // Формат с дефисами вместо пробелов (77760251088)
+    const fakeDataDashes = {
       ...site,
       phones: [
         {
           raw: '+77011325970',
-          display: '+7 776 025 1088', // заглушка дизайнера вместо правильного display
+          display: '+7-776-025-1088',
           isWhatsapp: true,
         } as Phone,
       ],
     };
-    expect(containsPlaceholderPhone(fakeData)).toBe(true);
+    expect(containsPlaceholderPhone(fakeDataDashes)).toBe(true);
+
+    // Формат слитный (77760251088)
+    const fakeDataCompact = {
+      ...site,
+      phones: [
+        {
+          raw: '+77011325970',
+          display: '77760251088',
+          isWhatsapp: true,
+        } as Phone,
+      ],
+    };
+    expect(containsPlaceholderPhone(fakeDataCompact)).toBe(true);
+
+    // Вторая заглушка в формате с дефисами (77078887371)
+    const fakeDataSecond = {
+      ...site,
+      phones: [
+        {
+          raw: '+77011325970',
+          display: '+7-707-888-7371',
+          isWhatsapp: true,
+        } as Phone,
+      ],
+    };
+    expect(containsPlaceholderPhone(fakeDataSecond)).toBe(true);
   });
 
   it('содержит оба настоящих номера', () => {
