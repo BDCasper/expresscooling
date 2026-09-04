@@ -9,9 +9,18 @@ interface Props {
    * а не уровень страницы.
    */
   deferPaint?: number;
+  /**
+   * Машиночитаемая метка секции — выводится как data-section. Решение
+   * зафиксировано до начала вёрстки: каждый компонент секции владеет своим
+   * <Section> вместе с data-section и deferPaint, а не страница поверх него.
+   * На нём рассчитаны Task 12 (порядок секций на странице) и Task 14
+   * (скриншоты по секциям для сверки с макетом) — оба читают атрибут, а не
+   * id или порядок в DOM, чтобы не зависеть от вёрстки конкретной секции.
+   */
+  dataSection?: string;
 }
 
-const { tone = 'light', id, class: className = '', deferPaint } = Astro.props;
+const { tone = 'light', id, class: className = '', deferPaint, dataSection } = Astro.props;
 
 const tones = {
   dark: 'bg-graphite text-chalk',
@@ -24,6 +33,7 @@ const tones = {
 
 <section
   id={id}
+  data-section={dataSection}
   class={`${tones[tone]} ${className}`}
   style={deferPaint ? `content-visibility:auto;contain-intrinsic-size:auto ${deferPaint}px` : undefined}
 >

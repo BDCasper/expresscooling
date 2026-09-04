@@ -54,7 +54,7 @@ import { heroImageSizes, heroImageWidths } from '../lib/heroImage';
 const heroLeftGutter = 'lg:pl-[max(40px,calc((100vw-1320px)/2+40px))]';
 ---
 
-<Section tone="dark" id="hero" class="relative">
+<Section tone="dark" id="hero" dataSection="hero" class="relative">
   <div class="flex flex-col lg:flex-row lg:items-stretch lg:gap-x-[60px]">
     <div class={`reveal px-5 py-10 md:px-10 lg:px-0 lg:py-16 ${heroLeftGutter}`}>
       <p class="text-[14px] font-bold uppercase tracking-[2.24px] text-amber">Алматы, заявки с 6:00</p>
@@ -172,6 +172,17 @@ const heroLeftGutter = 'lg:pl-[max(40px,calc((100vw-1320px)/2+40px))]';
     </div>
   </div>
 
+  {
+    /*
+      hidden lg:flex — намеренно, не забытый брейкпоинт. В мобильном макете
+      (node 1:491) этой круглой кнопки-якоря нет вообще: после фото сразу
+      идёт полоса фактов, без кружка на стыке секций. Кнопка — только в
+      десктопном узле (1:8, 1:411), поэтому и в разметке она есть только
+      от lg, синхронно с переходом Hero в двухколоночный десктопный вид
+      (см. комментарий у heroLeftGutter выше). Не удалять и не "чинить"
+      показ на мобильном без сверки с 1:491.
+    */
+  }
   <a
     href="#polomki"
     aria-label="Смотреть частые поломки"
