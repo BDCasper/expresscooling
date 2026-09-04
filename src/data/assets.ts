@@ -1,5 +1,6 @@
 import type { ImageMetadata } from 'astro';
 
+import logoMonogramSrc from '../assets/images/logo-ec-monogram.png';
 import heroMasterSrc from '../assets/images/hero-master.jpg';
 import warehouseShelvesSrc from '../assets/images/warehouse-shelves.jpg';
 import masterToolsSrc from '../assets/images/master-tools.jpg';
@@ -24,6 +25,12 @@ export interface SiteImage {
 }
 
 export const images = {
+  // Шапка, футер, favicon
+  logoMonogram: {
+    src: logoMonogramSrc,
+    alt: 'Логотип Express Cooling',
+  },
+
   // Первый экран
   heroMaster: {
     src: heroMasterSrc,
