@@ -1,0 +1,65 @@
+---
+import { Image } from 'astro:assets';
+import Section from './ui/Section.astro';
+import Container from './ui/Container.astro';
+import { images } from '../data/assets';
+---
+
+{
+  /*
+    Figma (1:329) кладёт фото и карточку в общую сетку с одной строкой
+    высотой 553px — оба столбца растянуты на равную высоту. Пропорция
+    ширин 714:510 сокращается ровно до 7:5 (102px общий делитель), поэтому
+    вместо жёстких пикселей — grid-cols-[7fr_5fr]: пропорция сохраняется на
+    любой ширине контейнера, а не только на 1320px из макета. Высоту строки
+    отдельно не фиксируем — она сама равна высоте фото (аспект 714/553),
+    карточка тянется вслед за ней через дефолтный grid-стretч.
+
+    Без deferPaint: с ним (content-visibility:auto) reveal-fallback.spec.ts
+    ловит на мобильном проекте регресс — IntersectionObserver перестаёт
+    ставить is-visible на пробник в конце страницы, хотя пробник не имеет
+    отношения к этой секции. Воспроизводится стабильно (100% на 3 повторах),
+    пропадает при удалении deferPaint. Выигрыш от content-visibility на
+    одной секции внутри одной страницы небольшой, а поломка анимации
+    появления заметна — оставляем секцию без него. Подробности в отчёте
+    задачи 10.
+  */
+}
+<Section tone="amber" dataSection="warehouse">
+  <Container>
+    <div class="py-16 md:py-[104px]">
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-[7fr_5fr]">
+        <div class="reveal-soft overflow-hidden rounded-[20px]">
+          <Image
+            src={images.warehouseShelves.src}
+            alt={images.warehouseShelves.alt}
+            width={714}
+            height={553}
+            format="avif"
+            loading="lazy"
+            class="h-[340px] w-full object-cover md:h-full md:aspect-[714/553]"
+          />
+        </div>
+
+        <div class="reveal flex flex-col rounded-[20px] bg-[#231c05] p-9">
+          <h2 class="text-[30px] font-bold leading-[37.5px] tracking-[-0.6px] text-amber">Свой склад</h2>
+          <p class="mt-[14px] max-w-[438px] text-[18px] leading-[28.44px] text-white/76">
+            Компрессоры, пуско-защитные реле, термостаты, ТЭНы оттайки и вентиляторы лежат у нас. Значит, между
+            диагностикой и ремонтом нет паузы на заказ детали.
+          </p>
+          <div class="mt-[22px] max-w-[438px] overflow-hidden rounded-[20px]">
+            <Image
+              src={images.masterTools.src}
+              alt={images.masterTools.alt}
+              width={438}
+              height={294}
+              format="avif"
+              loading="lazy"
+              class="h-[186px] w-full object-cover md:h-[294px]"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </Container>
+</Section>

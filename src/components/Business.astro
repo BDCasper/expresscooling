@@ -1,0 +1,124 @@
+---
+import { Image } from 'astro:assets';
+import Section from './ui/Section.astro';
+import Container from './ui/Container.astro';
+import WhatsAppButton from './ui/WhatsAppButton.astro';
+import { images } from '../data/assets';
+
+const listItems = [
+  'Торговые витрины и морозильные камеры',
+  'Кондитерские шкафы',
+  'Промышленные холодильные установки',
+  'За пределы города выезжаем по договорённости',
+];
+---
+
+{
+  /*
+    Текст лежит поверх фото мастера у витрины (node 1:343/1:345) — самое
+    уязвимое для контраста место макета. Дизайнер в Figma красит всю
+    карточку одной полупрозрачной заливкой на десктопе (линейный градиент
+    графит → прозрачность) и просто плоской rgba(20,20,20,0.72) на
+    мобильном узле (1:806). Плоская заливка на мобильном — не годится:
+    задача явно требует градиент, а не заливку на всю карточку, потому что
+    заливка одинаково слабо держит контраст что на тёмных, что на светлых
+    (окно, кафельная стена) участках снимка. Используем градиент на обоих
+    брейкпоинтах — .business-photo-overlay ниже — подобранный так, чтобы
+    самый светлый пиксель фотографии под текстом всё равно проходил порог
+    WCAG. Числа контраста, замеренные по фактическим пикселям businessMaster
+    под градиентом, — в отчёте задачи 10.
+
+    Без deferPaint: content-visibility:auto на этой секции ломает
+    tests/e2e/reveal-fallback.spec.ts на мобильном проекте — полифилл
+    IntersectionObserver перестаёт помечать is-visible на пробнике в конце
+    страницы (воспроизводится стабильно). Пропадает при удалении
+    deferPaint. Секция ниже второго экрана и подходила бы под deferPaint по
+    правилу задачи 12, но выигрыш от него на одной странице небольшой, а
+    поломка анимации появления заметна — оставляем без него. Подробности в
+    отчёте задачи 10.
+  */
+}
+<Section tone="dark" id="dlya-biznesa" dataSection="business">
+  <Container>
+    <div class="py-16 md:py-[104px]">
+      <div class="reveal-soft relative min-h-[520px] overflow-hidden rounded-[20px]">
+        <Image
+          src={images.businessMaster.src}
+          alt={images.businessMaster.alt}
+          width={1240}
+          height={712}
+          format="avif"
+          loading="lazy"
+          class="absolute inset-0 h-full w-full object-[79%_center] object-cover md:object-center"
+        />
+        <div aria-hidden="true" class="business-photo-overlay pointer-events-none absolute inset-0" />
+
+        <div class="relative flex flex-col items-start px-[30px] pb-[30px] pt-[33px] md:px-14 md:pb-14 md:pt-[62px]">
+          <p class="max-w-[290px] text-[14px] font-bold uppercase tracking-[2.24px] text-amber md:max-w-[468px]">
+            Кафе, магазины, производство
+          </p>
+          <h2
+            class="mt-[18px] max-w-[290px] text-[40px] font-bold leading-[43.2px] tracking-[-1.12px] text-chalk md:max-w-[468px]"
+          >
+            Витрина встала, торговля встала
+          </h2>
+          <p class="mt-4 max-w-[290px] text-[20px] leading-[31.6px] text-chalk-muted md:max-w-[468px]">
+            Коммерческую технику гоняют без остановки, поэтому и ломается она иначе: забитый пылью конденсатор,
+            засорённый дренаж, изношенный компрессорно-конденсаторный агрегат. Заявку принимаем с 6:00, до открытия
+            смены.
+          </p>
+          <ul class="mt-14 flex max-w-[290px] flex-col gap-[11px] md:max-w-[468px]">
+            {
+              listItems.map((item) => (
+                <li class="flex items-start gap-3 text-[19px] leading-[30.02px] text-chalk">
+                  <span class="mt-[11px] size-2 shrink-0 rounded-full bg-amber" aria-hidden="true" />
+                  <span>{item}</span>
+                </li>
+              ))
+            }
+          </ul>
+          <WhatsAppButton source="business" class="mt-[30px]" />
+        </div>
+      </div>
+    </div>
+  </Container>
+</Section>
+
+<style>
+  /*
+    Мобильные стопы градиента — не масштабированная копия десктопных: на
+    мобильном тексту нужна почти вся ширина карточки (290 из 350px, 83%
+    против 42% на десктопе), поэтому высокая непрозрачность держится
+    гораздо дальше по ширине, а не спадает после середины. Числа подобраны
+    и проверены скриптом по самому светлому пикселю businessMaster.jpg под
+    текстом (contrast-check в отчёте задачи 10): заголовок ≥14.9:1, абзац
+    ≥6.6:1 — оба с запасом выше порога WCAG (3:1 и 4.5:1).
+  */
+  .business-photo-overlay {
+    background-image: linear-gradient(
+      90deg,
+      rgba(20, 20, 20, 0.97) 0%,
+      rgba(20, 20, 20, 0.96) 75%,
+      rgba(20, 20, 20, 0.94) 92%,
+      rgba(20, 20, 20, 0.75) 100%
+    );
+  }
+
+  /*
+    Десктопные стопы — точные значения из Figma (node 1:345): 42% и 56% —
+    не круглые числа, а совпадают с правым краем текстового блока
+    (56+468=524px из 1240px карточки = 42.3%) — дизайнер сам подбирал
+    градиент под ширину текста, а не под красивые проценты.
+  */
+  @media (min-width: 768px) {
+    .business-photo-overlay {
+      background-image: linear-gradient(
+        90deg,
+        rgba(20, 20, 20, 0.95) 0%,
+        rgba(20, 20, 20, 0.93) 42%,
+        rgba(20, 20, 20, 0.86) 56%,
+        rgba(20, 20, 20, 0.05) 100%
+      );
+    }
+  }
+</style>
