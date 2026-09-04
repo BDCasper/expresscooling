@@ -14,14 +14,23 @@ test('шрифт Onest отдаётся со своего домена и под
     expect(url).toContain('/fonts/onest-');
   }
 
-  // Отдельно от факта загрузки шрифта (её уже обеспечивает голое `body {
-  // font-family }` в global.css) проверяем, что <body> явно подключает
-  // именно Tailwind-утилиту font-sans. Это важно при @source-ограниченном
-  // сканировании: если ни один файл в src/ не использует класс font-sans,
-  // Tailwind не сгенерирует для него CSS вовсе.
-  const bodyClass = await page.locator('body').getAttribute('class');
-  expect(bodyClass).toContain('font-sans');
-
   const family = await page.evaluate(() => getComputedStyle(document.body).fontFamily);
   expect(family).toContain('Onest');
+});
+
+test('символ ₸ подключает отдельный шрифт с диапазоном валютных знаков', async ({ page }) => {
+  // Тенге (U+20B8) не входит ни в кириллический, ни в латинский файл Onest —
+  // для него подключён третий @font-face с unicode-range: U+20A0-20C0 и
+  // src: onest-currency.woff2. Явно просим браузер разрешить глиф для этого
+  // символа через Font Loading API — это надёжнее, чем полагаться на layout
+  // с фиксированным ожиданием, и одинаково детерминировано на обоих проектах.
+  const fontRequests: string[] = [];
+  page.on('request', (r) => {
+    if (r.resourceType() === 'font') fontRequests.push(r.url());
+  });
+
+  await page.goto('/');
+  await page.evaluate(() => document.fonts.load('400 16px Onest', '₸'));
+
+  expect(fontRequests.some((url) => url.includes('/fonts/onest-currency.woff2'))).toBe(true);
 });

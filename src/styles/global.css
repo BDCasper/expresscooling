@@ -21,6 +21,19 @@
     U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
+/* Микро-сабсет из onest-latin-ext-wght-normal.woff2: только блок валютных
+   знаков, ради тенге (U+20B8), которого нет ни в кириллическом, ни в
+   латинском файле выше. Собран pyftsubset'ом, вариативная ось wght
+   сохранена (100–900). */
+@font-face {
+  font-family: "Onest";
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url("/fonts/onest-currency.woff2") format("woff2");
+  unicode-range: U+20A0-20C0;
+}
+
 @theme {
   --color-graphite: #232323;
   --color-graphite-soft: #2a2a2a;
