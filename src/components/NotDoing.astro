@@ -1,0 +1,61 @@
+---
+/**
+ * Владеет своим <Section> для обеих колонок (node 1:366) — «Чем не
+ * занимаемся» и «Скидки» (Discounts.astro, дочерний компонент, не секция).
+ * Решение зафиксировано в задаче: Task 12 ожидает ровно одну секцию
+ * data-section="not-doing" на странице, а не две рядом.
+ *
+ * Заголовки размером 36px фиксированы в обоих узлах Figma (десктоп 1:366 и
+ * мобильный 1:827) — в отличие от SectionHeading.astro (32px/46px по
+ * брейкпоинту), здесь один и тот же кегль на всех ширинах, поэтому общий
+ * компонент SectionHeading не подходит и заголовок собран здесь вручную.
+ */
+import Section from './ui/Section.astro';
+import Container from './ui/Container.astro';
+import Discounts from './Discounts.astro';
+
+const items = [
+  {
+    title: 'Ремонт и замена уплотнителя двери',
+    detail: 'Меняется целиком и заказывается под модель, это к поставщикам запчастей',
+  },
+  {
+    title: 'Ремонт и установка кондиционеров',
+    detail: 'Другая техника и другой инструмент, хоть контур и похож',
+  },
+  {
+    title: 'Скупка и продажа техники',
+    detail: 'Мы только чиним, выкупать на запчасти не предлагаем',
+  },
+] as const;
+---
+
+<Section tone="light" dataSection="not-doing">
+  <Container>
+    <div class="py-16 md:py-[104px]">
+      <div class="grid grid-cols-1 gap-14 md:grid-cols-2 md:gap-x-[70px] md:gap-y-0">
+        <div class="reveal">
+          <h2 class="text-[36px] font-bold leading-[1.08] tracking-[-1.008px] text-ink">Чем не занимаемся</h2>
+          <p class="mt-4 text-[18px] leading-[1.58] text-ink-muted md:text-[20px]">
+            Чтобы вы не тратили время на звонок.
+          </p>
+          <ul class="mt-6 flex flex-col gap-[13px]">
+            {
+              items.map((item) => (
+                <li class="flex items-start gap-3">
+                  <span class="mt-[11px] size-2 shrink-0 rounded-full bg-[#b9b9b9]" aria-hidden="true" />
+                  <span>
+                    <span class="block text-[19px] leading-[30.02px] text-ink">{item.title}</span>
+                    <span class="mt-[6px] block text-[17px] leading-[24.65px] text-ink-muted">{item.detail}</span>
+                  </span>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+
+        <Discounts class="reveal" />
+      </div>
+    </div>
+  </Container>
+</Section>

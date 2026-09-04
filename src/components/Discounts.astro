@@ -1,0 +1,45 @@
+---
+/**
+ * Дочерний компонент NotDoing.astro (node 1:396), не отдельная секция — так
+ * решено заранее (Task 12 ожидает ровно одну секцию data-section="not-doing"
+ * на странице). Заголовок здесь — тоже <h2>: в макете оба столбца озаглавлены
+ * как заголовки второго уровня, а секция физически одна, поэтому в разметке
+ * получается два соседних <h2> без общего <h2> секции — валидная плоская
+ * структура (h1 → …h2, h2…), а не пропуск уровня.
+ */
+import { discounts } from '../data/discounts';
+
+interface Props {
+  class?: string;
+}
+
+const { class: className = '' } = Astro.props;
+---
+
+<div class={className}>
+  <h2 class="text-[36px] font-bold leading-[1.08] tracking-[-1.008px] text-ink">Скидки</h2>
+  <p class="mt-4 text-[18px] leading-[1.58] text-ink-muted md:text-[20px]">
+    Считаются от итоговой стоимости работ, называйте при обращении.
+  </p>
+  <div class="mt-6 flex flex-col">
+    {
+      discounts.map((item) => (
+        <div data-discount class="flex items-center justify-between border-b border-black/12 py-[21px]">
+          <span class="text-[19px] leading-[30.02px] text-ink">{item.label}</span>
+          {
+            /*
+              24px/#8a6100 (--color-amber-ink), не 30px/--color-amber — так в
+              get_design_context (узлы 1:404/1:407/1:410): чистый амбер
+              #efb726 на кремовом фоне даёт 1.69:1 (см. обоснование того же
+              выбора для eyebrow в SectionHeading.astro), amber-ink проходит
+              WCAG. Числовое описание в брифе задачи («30px, цвет амбер»)
+              разошлось с фактическим узлом — здесь применён пиксель-в-пиксель
+              вариант из Figma, расхождение зафиксировано в отчёте задачи 11.
+            */
+          }
+          <span class="text-[24px] font-bold leading-[37.92px] text-amber-ink">{item.value}</span>
+        </div>
+      ))
+    }
+  </div>
+</div>

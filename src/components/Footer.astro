@@ -1,0 +1,130 @@
+---
+/**
+ * Node 1:417 (десктоп) / 1:869 (мобильный, тот же порядок и тексты в один
+ * столбец). Самая ответственная часть данных на странице: единственное
+ * место, где оба телефона, режим работы и город показаны вместе. Все
+ * значения — из site.ts/links.ts, ни одного числа в разметке напрямую.
+ *
+ * В макете Figma на месте телефонов лежат чужие заглушки дизайнера
+ * (+7 776 025 1088 и +7 707 888 7371, см. get_design_context узлы 1:442/1:447
+ * и 1:894/1:899) — они не используются нигде ниже. Реальные номера берутся
+ * только из site.phones.
+ *
+ * Декоративный тёплый градиент фона (node 1:418/1:870 — пять размытых
+ * радиальных SVG-заливок) воспроизведён CSS-градиентами ниже (.footer-glow),
+ * а не отдельной картинкой — так требует задача. Второй декоративный слой
+ * (node 1:419/1:871, "Text" — полупрозрачная диагональная текстура-паттерн)
+ * сознательно опущен: он ничего не добавляет к контрасту текста поверх, а
+ * тащить под него отдельную картинку задача прямо запрещает.
+ */
+import { getImage } from 'astro:assets';
+import Container from './ui/Container.astro';
+import WhatsAppButton from './ui/WhatsAppButton.astro';
+import Icon from './ui/Icon.astro';
+import { images } from '../data/assets';
+import { site } from '../data/site';
+import { telHref } from '../lib/links';
+
+const logo = await getImage({ src: images.logoMonogram.src, width: 74, height: 74 });
+---
+
+<footer class="relative overflow-hidden bg-graphite-footer text-chalk">
+  <div aria-hidden="true" class="footer-glow pointer-events-none absolute inset-0" />
+  <Container class="relative">
+    <div class="border-t border-white/13 pb-[51px] pt-[52px] md:pb-[46px] md:pt-[93px]">
+      <div class="grid grid-cols-1 gap-11 md:grid-cols-[1.3fr_1fr_1fr] md:gap-x-[60px] md:gap-y-0">
+        <div class="reveal">
+          <a href="/" class="flex items-center gap-[11px] focus-ring">
+            <span
+              role="img"
+              aria-label={images.logoMonogram.alt}
+              class="h-[37px] w-[37px] shrink-0 rounded-[6.58px] bg-cover bg-center"
+              style={`background-image:url(${logo.src})`}
+            />
+            <span class="text-[21px] font-bold tracking-[-0.42px] text-chalk">Express Cooling</span>
+          </a>
+          <h2
+            class="mt-[26px] max-w-[397px] text-[32px] font-bold leading-[1.08] tracking-[-1.12px] text-chalk md:text-[40px]"
+          >
+            Опишите поломку, ответит мастер
+          </h2>
+          {
+            /*
+              В макете дословно «Заявки с 6:00 до 00:00.» — фраза с временем
+              внутри предложения. Часы работы не пишутся в разметке напрямую
+              (глобальное ограничение задачи), а site.ts отдаёт только готовый
+              диапазон site.hours.label ("6:00-00:00"), без отдельных полей
+              под предложную конструкцию «с … до …». Подставить его в ту же
+              грамматику («Заявки с 6:00-00:00.») значило бы слепить два
+              несовместимых обозначения диапазона в одной фразе — заменено на
+              «Заявки: 6:00-00:00.», без потери смысла.
+            */
+          }
+          <p class="mt-4 max-w-[453px] text-[18px] leading-[1.58] text-chalk-body md:text-[20px]">
+            Звонки принимают те же люди, которые приедут на выезд. Заявки: {site.hours.label}.
+          </p>
+          <WhatsAppButton source="footer" class="mt-[30px]" />
+        </div>
+
+        <div class="reveal">
+          <p class="text-[15px] font-bold uppercase tracking-[2.1px] text-chalk-muted">Телефоны</p>
+          <ul class="mt-4 flex flex-col">
+            {
+              site.phones.map((phone, index) => (
+                <li>
+                  <a
+                    href={telHref(phone.raw)}
+                    data-cta={`footer-phone-${index + 1}`}
+                    class="flex items-center gap-[9px] py-[11px] text-[19px] font-medium text-chalk transition-colors duration-200 ease-soft hover:text-amber focus-ring"
+                  >
+                    <Icon name="icon-phone-light" size={17} />
+                    {phone.display}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+          <p class="mt-2 text-[16px] text-chalk-muted">WhatsApp на обоих номерах</p>
+        </div>
+
+        <div class="reveal">
+          <p class="text-[15px] font-bold uppercase tracking-[2.1px] text-chalk-muted">Режим и город</p>
+          <div class="mt-4 flex flex-col">
+            <p class="flex items-center gap-[9px] py-[11px] text-[19px] font-medium text-chalk">
+              <Icon name="icon-clock" size={17} />
+              Заявки {site.hours.label}
+            </p>
+            <p class="flex items-center gap-[9px] py-[11px] text-[19px] font-medium text-chalk">
+              <Icon name="icon-location-pin" size={17} />
+              {site.city}
+            </p>
+          </div>
+          <p class="mt-2 text-[16px] text-chalk-muted">За пределы города выезд по договорённости</p>
+        </div>
+      </div>
+
+      <div class="mt-[60px] grid grid-cols-2 gap-x-6 gap-y-2 border-t border-white/13 pt-[27px] text-[16px] text-chalk-muted">
+        <p>{site.legalLine}</p>
+        <p class="text-right">Стоимость работ озвучиваем до начала ремонта</p>
+      </div>
+    </div>
+  </Container>
+</footer>
+
+<style>
+  /*
+    Приближение к пяти размытым радиальным заливкам из макета (node
+    1:418/1:870): тёплый амбер сверху справа, холодный синий снизу слева,
+    едва заметная белая подсветка — тот же характер света без blur-фильтра
+    поверх всей секции (дорого перерисовывать на мобильных GPU, см.
+    аналогичное решение reveal-анимаций в global.css).
+  */
+  .footer-glow {
+    background-image:
+      radial-gradient(620px 520px at 88% 10%, rgba(239, 183, 38, 0.1), transparent 70%),
+      radial-gradient(520px 430px at 97% 55%, rgba(255, 214, 120, 0.07), transparent 72%),
+      radial-gradient(680px 560px at 62% 105%, rgba(120, 190, 255, 0.06), transparent 74%),
+      radial-gradient(520px 430px at 22% 8%, rgba(255, 255, 255, 0.035), transparent 70%),
+      radial-gradient(760px 640px at 6% 82%, rgba(239, 183, 38, 0.035), transparent 76%);
+  }
+</style>

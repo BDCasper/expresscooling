@@ -9,6 +9,8 @@ import HowItWorks from '../components/HowItWorks.astro';
 import Equipment from '../components/Equipment.astro';
 import Warehouse from '../components/Warehouse.astro';
 import Business from '../components/Business.astro';
+import NotDoing from '../components/NotDoing.astro';
+import Footer from '../components/Footer.astro';
 import WhatsAppButton from '../components/ui/WhatsAppButton.astro';
 import PhoneButton from '../components/ui/PhoneButton.astro';
 import Icon from '../components/ui/Icon.astro';
@@ -52,7 +54,9 @@ const heroPreload = await getImage({
     <Equipment />
     <Warehouse />
     <Business />
+    <NotDoing />
   </main>
+  <Footer />
 
   <!-- Временный вывод UI-примитивов для tests/e2e/primitives.spec.ts и
        tests/e2e/reveal-fallback.spec.ts. Удаляется в Task 12, когда секции
