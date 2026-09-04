@@ -1,0 +1,34 @@
+---
+import { whatsappHref } from '../../lib/links';
+import Icon from './Icon.astro';
+
+interface Props {
+  /** Метка источника для аналитики: hero, card-<slug>, footer */
+  source: string;
+  variant?: 'solid' | 'inline';
+  label?: string;
+  class?: string;
+}
+
+const { source, variant = 'solid', label = 'Написать в WhatsApp', class: className = '' } = Astro.props;
+
+const base =
+  'inline-flex items-center gap-3 font-semibold transition-[background-color,box-shadow,transform] duration-200 ease-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber';
+
+const variants = {
+  solid:
+    'rounded-pill bg-wa text-wa-ink pl-9 pr-6 h-14 text-[18px] hover:bg-[#2ee070] hover:shadow-[0_8px_24px_-8px_rgba(37,211,102,0.6)]',
+  inline: 'text-wa-ink/90 text-[17px] hover:gap-4',
+};
+---
+
+<a
+  href={whatsappHref()}
+  data-cta={source}
+  target="_blank"
+  rel="noopener noreferrer"
+  class={`${base} ${variants[variant]} ${className}`}
+>
+  <Icon name="icon-whatsapp-button" size={21} />
+  <span>{label}</span>
+</a>

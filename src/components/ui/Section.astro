@@ -1,0 +1,31 @@
+---
+interface Props {
+  tone?: 'dark' | 'soft' | 'light' | 'amber' | 'footer';
+  id?: string;
+  class?: string;
+  /**
+   * Ожидаемая высота для content-visibility. Ставится только секциям ниже
+   * второго экрана. Значение владеет им сам компонент секции (см. Task 12),
+   * а не уровень страницы.
+   */
+  deferPaint?: number;
+}
+
+const { tone = 'light', id, class: className = '', deferPaint } = Astro.props;
+
+const tones = {
+  dark: 'bg-graphite text-chalk',
+  soft: 'bg-graphite-soft text-chalk',
+  light: 'bg-cream text-ink',
+  amber: 'bg-amber text-ink',
+  footer: 'bg-graphite-footer text-chalk',
+};
+---
+
+<section
+  id={id}
+  class={`${tones[tone]} ${className}`}
+  style={deferPaint ? `content-visibility:auto;contain-intrinsic-size:auto ${deferPaint}px` : undefined}
+>
+  <slot />
+</section>

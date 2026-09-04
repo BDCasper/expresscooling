@@ -1,0 +1,22 @@
+---
+import { primaryPhone, telHref } from '../../lib/links';
+import type { Phone } from '../../data/site';
+import Icon from './Icon.astro';
+
+interface Props {
+  source: string;
+  phone?: Phone;
+  class?: string;
+}
+
+const { source, phone = primaryPhone(), class: className = '' } = Astro.props;
+---
+
+<a
+  href={telHref(phone.raw)}
+  data-cta={source}
+  class={`inline-flex h-14 items-center gap-3 rounded-pill border border-white/36 pl-9 pr-6 text-[18px] font-semibold text-white transition-colors duration-200 ease-soft hover:border-white/70 hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber ${className}`}
+>
+  <Icon name="icon-phone-white" size={21} />
+  <span>{phone.display}</span>
+</a>

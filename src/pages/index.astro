@@ -1,5 +1,8 @@
 ---
 import '../styles/global.css';
+import WhatsAppButton from '../components/ui/WhatsAppButton.astro';
+import PhoneButton from '../components/ui/PhoneButton.astro';
+import Icon from '../components/ui/Icon.astro';
 ---
 <!doctype html>
 <html lang="ru">
@@ -10,5 +13,14 @@ import '../styles/global.css';
   </head>
   <body>
     <h1 data-testid="page-title">Express Cooling</h1>
+    <!-- Временный вывод UI-примитивов для tests/e2e/primitives.spec.ts. Удаляется в Task 12. -->
+    <WhatsAppButton source="test-primitive" />
+    <PhoneButton source="test-phone" />
+    <div id="test-icons">
+      <Icon name="brand-lg" />
+      <Icon name="brand-samsung" />
+      <Icon name="brand-bosch" />
+      <Icon name="brand-hitachi" />
+    </div>
   </body>
 </html>
