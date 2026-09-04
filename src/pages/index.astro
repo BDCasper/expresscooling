@@ -3,6 +3,7 @@ import '../styles/global.css';
 import WhatsAppButton from '../components/ui/WhatsAppButton.astro';
 import PhoneButton from '../components/ui/PhoneButton.astro';
 import Icon from '../components/ui/Icon.astro';
+import RevealFallback from '../components/ui/RevealFallback.astro';
 ---
 <!doctype html>
 <html lang="ru">
@@ -10,6 +11,10 @@ import Icon from '../components/ui/Icon.astro';
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Express Cooling</title>
+    <!-- Временно здесь для tests/e2e/reveal-fallback.spec.ts. В Task 6 переезжает в
+         Base.astro, в <head>, как можно раньше — класс js-reveal должен встать до
+         первой отрисовки. -->
+    <RevealFallback />
   </head>
   <body>
     <h1 data-testid="page-title">Express Cooling</h1>
@@ -22,5 +27,6 @@ import Icon from '../components/ui/Icon.astro';
       <Icon name="brand-bosch" />
       <Icon name="brand-hitachi" />
     </div>
+    <p class="reveal" data-testid="reveal-probe">Проверка появления контента</p>
   </body>
 </html>

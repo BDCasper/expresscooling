@@ -10,11 +10,19 @@ const { eyebrow, title, lead, tone = 'light' } = Astro.props;
 
 const titleColor = tone === 'dark' ? 'text-chalk' : 'text-ink';
 const leadColor = tone === 'dark' ? 'text-chalk-body' : 'text-ink-muted';
+/**
+ * #efb726 (--color-amber) на графите даёт 8.59:1 — годится и для тёмных
+ * секций. На кремовом фоне тот же цвет даёт всего 1.69:1, почти нечитаем.
+ * Дизайнер на светлых секциях («Что случилось», node 1:83) красит
+ * надзаголовок в приглушённую бронзу #8a6100 (--color-amber-ink),
+ * которая на кремовом даёт 5.13:1 — проходит порог 4.5:1.
+ */
+const eyebrowColor = tone === 'dark' ? 'text-amber' : 'text-amber-ink';
 ---
 
 <div class="reveal">
   {eyebrow && (
-    <p class="text-[14px] font-bold uppercase tracking-[2.24px] text-amber">{eyebrow}</p>
+    <p class={`text-[14px] font-bold uppercase tracking-[2.24px] ${eyebrowColor}`}>{eyebrow}</p>
   )}
   <h2 class={`mt-2 text-[32px] font-bold leading-[1.08] tracking-[-1.288px] md:text-[46px] ${titleColor}`}>
     {title}

@@ -45,6 +45,7 @@
   --color-chalk-body: #d2d2d2;
   --color-chalk-muted: #a5a5a5;
   --color-amber: #efb726;
+  --color-amber-ink: #8a6100;
   --color-wa: #25d366;
   --color-wa-ink: #08251a;
 
@@ -118,10 +119,30 @@ body {
     }
   }
 
+  /*
+    Браузеры без animation-timeline: view() (Firefox на момент написания)
+    не получают анимацию через чистый CSS вовсе — сюда встаёт полифилл на
+    IntersectionObserver, см. RevealFallback.astro. Скрытие (opacity: 0)
+    включается только под классом .js-reveal, который скрипт полифилла
+    ставит на <html> синхронно, до первой отрисовки, — а если скрипт не
+    выполнился (JS отключён, ошибка, CSS.supports разрешил анимацию сам),
+    класса не будет, и правило .js-reveal .reveal { opacity: 0 } просто не
+    сработает: содержимое останется видимым без анимации. Скрывать контент
+    раньше, чем появится способ его снова показать, нельзя — иначе человек
+    без JS увидит пустую страницу.
+  */
   @supports not (animation-timeline: view()) {
-    .reveal, .reveal-soft, .reveal-stagger > * { opacity: 0; }
-    .is-visible.reveal, .is-visible .reveal-soft, .is-visible > * {
+    .js-reveal .reveal,
+    .js-reveal .reveal-soft,
+    .js-reveal .reveal-stagger > * { opacity: 0; }
+
+    /* .reveal-soft — без blur, ключевые кадры thaw-soft, а не thaw */
+    .js-reveal .reveal.is-visible,
+    .js-reveal .reveal-stagger.is-visible > * {
       animation: thaw 0.6s var(--ease-soft) both;
+    }
+    .js-reveal .reveal-soft.is-visible {
+      animation: thaw-soft 0.6s var(--ease-soft) both;
     }
   }
 }

@@ -1,4 +1,25 @@
 ---
+/**
+ * Цвет заливки/обводки запечён в каждый SVG (это разметка из Figma, не
+ * currentColor), поэтому иконка подходит только под тот фон, под который
+ * её нарисовал дизайнер. Ориентир по факту цвета в файле:
+ *
+ * - Белая заливка (white / #F6F6F6): brand-bosch, brand-hitachi, brand-lg,
+ *   brand-samsung, icon-phone-white, icon-clock, icon-location-pin,
+ *   icon-phone-light — только тёмные секции (Section tone="dark"/"soft"/
+ *   "footer").
+ * - Амбер #EFB726 (--color-amber): icon-card, icon-grid, icon-price-tag,
+ *   icon-snowflake — тоже тёмные секции (амбер контрастен на графите,
+ *   8.59:1, но почти нечитаем на кремовом, 1.69:1 — см. SectionHeading.astro).
+ * - Бронза #8A6100 (--color-amber-ink): icon-price-tag-light,
+ *   icon-speech-bubble, icon-wrench — светлые секции (tone="light"/"amber").
+ * - Тёмная обводка #232323: icon-camera-industrial — светлые/амбер секции.
+ * - Тёмно-зелёная заливка #08251A (--color-wa-ink): icon-whatsapp-bubble,
+ *   icon-whatsapp-button, icon-whatsapp-nav — привязаны к зелёной плашке
+ *   WhatsApp (bg-wa), а не к тону секции.
+ * - icon-arrow-up-right / -alt — два оттенка зелёного под разный фон
+ *   карточки поломки, смотреть по месту использования.
+ */
 interface Props {
   name: string;
   size?: number;
