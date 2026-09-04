@@ -24,7 +24,7 @@ interface Props {
 const { source, phone = primaryPhone(), variant = 'pill', class: className = '' } = Astro.props;
 
 const base =
-  'inline-flex h-14 items-center justify-center rounded-pill border border-white/36 text-white transition-colors duration-200 ease-soft hover:border-white/70 hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber';
+  'inline-flex h-14 items-center justify-center rounded-pill border border-white/36 text-white transition-colors duration-200 ease-soft hover:border-white/70 hover:bg-white/5 focus-ring';
 
 /**
  * --radius-pill в global.css — фиксированные 100px, не 9999px/50%: на
