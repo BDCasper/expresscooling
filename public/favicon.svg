@@ -1,5 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- Временная заглушка. Настоящий favicon делается в Task 13. -->
-  <rect width="32" height="32" rx="6" fill="#232323" />
-  <text x="16" y="22" font-family="sans-serif" font-size="16" font-weight="700" fill="#EFB726" text-anchor="middle">E</text>
+  <!-- Упрощённая перерисовка монограммы EC (исходник в Figma — растровый
+       PNG, см. src/assets/images/logo-ec-monogram.png): тёмно-синий
+       квадрат со скруглением и белые буквы EC без деталей оригинала
+       (оранжевого скоса у E), которые на 16×16 всё равно неразличимы. -->
+  <rect width="32" height="32" rx="7" fill="#0B1E42" />
+  <text
+    x="16"
+    y="22.5"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="16"
+    font-weight="800"
+    letter-spacing="-1.2"
+    fill="#FFFFFF"
+    text-anchor="middle"
+  >EC</text>
 </svg>

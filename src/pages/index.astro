@@ -12,6 +12,7 @@ import Business from '../components/Business.astro';
 import NotDoing from '../components/NotDoing.astro';
 import Footer from '../components/Footer.astro';
 import { images } from '../data/assets';
+import { site } from '../data/site';
 import { heroImageSizes, heroImageWidths } from '../lib/heroImage';
 
 /**
@@ -31,7 +32,7 @@ const heroPreload = await getImage({
 
 <Base
   title="Ремонт холодильников в Алматы — Express Cooling"
-  description="Ремонт холодильников и холодильного оборудования в Алматы. Звонки принимают сами мастера, выезд за 40-90 минут, диагностика от 3500 ₸, стоимость называем до начала работ."
+  description={`Ремонт холодильников в ${site.city}. Звонки принимают сами мастера, выезд за ${site.responseTime}, диагностика ${site.diagnosticsFrom}.`}
 >
   <link
     slot="head"

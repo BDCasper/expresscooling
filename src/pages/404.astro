@@ -1,0 +1,54 @@
+---
+/**
+ * Страница 404. `<meta name="robots" content="noindex, follow">` уходит в
+ * именованный слот "head" у Base — так же передаётся preload-ссылка LCP-
+ * изображения в index.astro (см. комментарий там же о том, почему это
+ * единственный рабочий способ вставить произвольный тег в <head> Base).
+ * "noindex" — сама страница не должна попасть в выдачу, "follow" — ссылка
+ * на главную ниже всё равно должна передавать вес обычной ссылкой.
+ *
+ * Header и Footer — те же компоненты, что на главной: единственный <h1> на
+ * странице — заголовок ниже, у Footer это <h2>/<h3>, разрыва иерархии нет.
+ */
+import Base from '../layouts/Base.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import Container from '../components/ui/Container.astro';
+import WhatsAppButton from '../components/ui/WhatsAppButton.astro';
+---
+
+<Base
+  title="Страница не найдена — Express Cooling"
+  description="Такой страницы нет. Вернитесь на главную — оттуда можно сразу вызвать мастера на ремонт холодильника в Алматы."
+>
+  <meta slot="head" name="robots" content="noindex, follow" />
+  <Header />
+  <main>
+    <section class="bg-graphite text-chalk" data-section="404">
+      <Container>
+        <div class="flex min-h-[64vh] flex-col items-center justify-center py-20 text-center">
+          <p class="text-[14px] font-bold uppercase tracking-[2.24px] text-amber">Ошибка 404</p>
+          <h1
+            class="mt-[18px] max-w-[620px] text-[36px] font-bold leading-[1.08] tracking-[-1.2px] text-chalk lg:text-[52px] lg:tracking-[-1.8px]"
+          >
+            Такой страницы не нашлось
+          </h1>
+          <p class="mt-[22px] max-w-[481px] text-[19px] leading-[30.02px] text-chalk-body">
+            Возможно, ссылка устарела или в адресе опечатка. Быстрее всего вернуться на главную —
+            заявку там принимают сами мастера.
+          </p>
+          <div class="mt-[34px] flex flex-wrap items-center justify-center gap-[14px]">
+            <a
+              href="/"
+              class="inline-flex h-14 items-center rounded-pill bg-amber px-9 text-[18px] font-semibold text-ink transition-colors duration-200 ease-soft hover:bg-[#f4c752] focus-ring"
+            >
+              На главную
+            </a>
+            <WhatsAppButton source="404" />
+          </div>
+        </div>
+      </Container>
+    </section>
+  </main>
+  <Footer />
+</Base>
