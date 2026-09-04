@@ -1,6 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { site } from '../../src/data/site';
+import { site, type Phone } from '../../src/data/site';
 import { digitsOnly, primaryPhone, telHref, whatsappHref } from '../../src/lib/links';
+
+/** Номера-заглушки из макета Figma — дословно как в дизайне */
+const PLACEHOLDER_PHONES = ['+7 776 025 1088', '+7 707 888 7371'];
+
+/**
+ * Проверяет что данные не содержат номера-заглушки из макета.
+ * Работает с любым форматом записи (с пробелами, без, слитно).
+ */
+function containsPlaceholderPhone(data: unknown): boolean {
+  const digits = JSON.stringify(data).replace(/\D/g, '');
+  return PLACEHOLDER_PHONES.some((p) => digits.includes(p.replace(/\D/g, '')));
+}
 
 describe('digitsOnly', () => {
   it('оставляет только цифры', () => {
@@ -41,20 +53,23 @@ describe('whatsappHref', () => {
 });
 
 describe('site', () => {
-  it('не содержит номеров-заглушек из макета (устойчиво к форматированию)', () => {
-    // Нормализуем все данные сайта, убирая всё кроме цифр
-    const serialized = JSON.stringify(site);
-    const normalized = serialized.replace(/\D/g, '');
-    // Проверяем что слитные формы заглушек не попали в данные
-    expect(normalized).not.toContain('7760251088');
-    expect(normalized).not.toContain('7078887371');
+  it('не содержит номеров-заглушек из макета', () => {
+    expect(containsPlaceholderPhone(site)).toBe(false);
   });
 
-  it('ловит заглушку в человеческом формате', () => {
-    // Эта заглушка в таком формате может быть случайно скопирована из макета
-    const humanFormat = '+7 760 251 088';
-    const normalized = humanFormat.replace(/\D/g, '');
-    expect(normalized).toBe('7760251088');
+  it('барьер срабатывает: ловит заглушку в человеческом формате', () => {
+    // Симулируем случай когда номер скопирован из Figma в display с пробелами
+    const fakeData = {
+      ...site,
+      phones: [
+        {
+          raw: '+77011325970',
+          display: '+7 776 025 1088', // заглушка дизайнера вместо правильного display
+          isWhatsapp: true,
+        } as Phone,
+      ],
+    };
+    expect(containsPlaceholderPhone(fakeData)).toBe(true);
   });
 
   it('содержит оба настоящих номера', () => {
