@@ -1,32 +1,25 @@
 ---
-import '../styles/global.css';
+import Base from '../layouts/Base.astro';
 import WhatsAppButton from '../components/ui/WhatsAppButton.astro';
 import PhoneButton from '../components/ui/PhoneButton.astro';
 import Icon from '../components/ui/Icon.astro';
-import RevealFallback from '../components/ui/RevealFallback.astro';
 ---
-<!doctype html>
-<html lang="ru">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Express Cooling</title>
-    <!-- Временно здесь для tests/e2e/reveal-fallback.spec.ts. В Task 6 переезжает в
-         Base.astro, в <head>, как можно раньше — класс js-reveal должен встать до
-         первой отрисовки. -->
-    <RevealFallback />
-  </head>
-  <body>
-    <h1 data-testid="page-title">Express Cooling</h1>
-    <!-- Временный вывод UI-примитивов для tests/e2e/primitives.spec.ts. Удаляется в Task 12. -->
-    <WhatsAppButton source="test-primitive" />
-    <PhoneButton source="test-phone" />
-    <div id="test-icons">
-      <Icon name="brand-lg" />
-      <Icon name="brand-samsung" />
-      <Icon name="brand-bosch" />
-      <Icon name="brand-hitachi" />
-    </div>
-    <p class="reveal" data-testid="reveal-probe">Проверка появления контента</p>
-  </body>
-</html>
+
+<Base
+  title="Ремонт холодильников в Алматы — Express Cooling"
+  description="Ремонт холодильников и холодильного оборудования в Алматы. Звонки принимают сами мастера, выезд за 40-90 минут, диагностика от 3500 ₸, стоимость называем до начала работ."
+>
+  <h1 data-testid="page-title">Ремонт холодильников в Алматы</h1>
+  <!-- Временный вывод UI-примитивов для tests/e2e/primitives.spec.ts и
+       tests/e2e/reveal-fallback.spec.ts. Удаляется в Task 12, когда секции
+       начнут использовать те же примитивы по-настоящему. -->
+  <WhatsAppButton source="test-primitive" />
+  <PhoneButton source="test-phone" />
+  <div id="test-icons">
+    <Icon name="brand-lg" />
+    <Icon name="brand-samsung" />
+    <Icon name="brand-bosch" />
+    <Icon name="brand-hitachi" />
+  </div>
+  <p class="reveal" data-testid="reveal-probe">Проверка появления контента</p>
+</Base>

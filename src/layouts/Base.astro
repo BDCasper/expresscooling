@@ -1,0 +1,80 @@
+---
+import '../styles/global.css';
+import { buildLocalBusinessSchema } from '../lib/schema';
+import RevealFallback from '../components/ui/RevealFallback.astro';
+
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const ogImage = new URL('/og-image.jpg', Astro.site).href;
+const schema = buildLocalBusinessSchema(ogImage);
+
+const GA_ID = import.meta.env.PUBLIC_GA_ID ?? '';
+const ADS_ID = import.meta.env.PUBLIC_ADS_ID ?? '';
+
+/**
+ * Тег gtag.js весит около 90 КБ и выполняется в главном потоке — на
+ * лендинге под платную рекламу Google это цена клика, поэтому он не
+ * попадает в <head> напрямую. Вместо этого ниже лежит только тонкая
+ * обвязка (~1.3 КБ), которая грузит настоящий тег по первому скролу,
+ * касанию, клику или нажатию клавиши — то есть по первому признаку, что
+ * во вкладке вообще кто-то есть. Резервный таймер на 10 секунд после
+ * load подхватывает случай, когда взаимодействия не было вовсе (такие
+ * вкладки и так не конвертируются). Клик по кнопке WhatsApp сам по себе
+ * взаимодействие, поэтому ни одна конверсия не теряется.
+ *
+ * Если оба PUBLIC_GA_ID и PUBLIC_ADS_ID пусты (штатный режим до запуска
+ * рекламы, см. .env.example) — тег не грузится вовсе, но dataLayer и
+ * gtag()-заглушка создаются всегда: событие клика по CTA должно попадать
+ * в dataLayer независимо от того, слушает ли его в этот момент Google.
+ *
+ * UTM-метки и gclid дописываются в текст сообщения WhatsApp на клиенте:
+ * статический HTML не знает параметров запроса, а мастер должен видеть
+ * источник заявки в первом же сообщении.
+ *
+ * Скрипт минифицирован в одну строку без комментариев ради общего
+ * бюджета инлайн-JS (2 КБ на страницу, вместе с фолбэком анимаций из
+ * RevealFallback.astro) — сам код и решения по нему описаны здесь, во
+ * фронтматтере, откуда этот текст не попадает в сборку.
+ */
+---
+
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Обязана отработать синхронно, до первой отрисовки: ставит на <html>
+         класс js-reveal, к которому привязаны правила скрытия в global.css. -->
+    <RevealFallback />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/onest-cyrillic.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/onest-latin.woff2" crossorigin />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ru_RU" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <script type="application/ld+json" set:html={JSON.stringify(schema)} is:inline />
+
+    <script is:inline define:vars={{ GA_ID, ADS_ID }}>(function(){window.dataLayer=window.dataLayer||[];function gtag(){window.dataLayer.push(arguments)}window.gtag=gtag;var loaded=false;function loadTag(){if(loaded)return;loaded=true;var id=GA_ID||ADS_ID;if(!id)return;var s=document.createElement('script');s.async=true;s.src='https://www.googletagmanager.com/gtag/js?id='+id;document.head.appendChild(s);gtag('js',new Date());if(GA_ID)gtag('config',GA_ID);if(ADS_ID)gtag('config',ADS_ID)}['scroll','pointerdown','keydown','touchstart'].forEach(function(e){addEventListener(e,loadTag,{once:true,passive:true})});addEventListener('load',function(){setTimeout(loadTag,10000)});var q=new URLSearchParams(location.search);var marks=['gclid','utm_source','utm_medium','utm_campaign','utm_content','utm_term'].map(function(k){var v=q.get(k);return v?k+'='+v:null}).filter(Boolean);addEventListener('DOMContentLoaded',function(){if(marks.length){document.querySelectorAll('a[href*="wa.me"]').forEach(function(a){var u=new URL(a.href);u.searchParams.set('text',(u.searchParams.get('text')||'')+'\n\n['+marks.join(' ')+']');a.href=u.toString()})}});addEventListener('click',function(ev){var a=ev.target.closest&&ev.target.closest('a[data-cta]');if(!a)return;var isWa=a.href.indexOf('wa.me')>-1;gtag('event',isWa?'whatsapp_click':'phone_click',{source:a.getAttribute('data-cta')})},{capture:true})})();</script>
+  </head>
+  <body class="font-sans">
+    <slot />
+  </body>
+</html>
