@@ -1,0 +1,80 @@
+---
+import { getImage } from 'astro:assets';
+import Container from './ui/Container.astro';
+import WhatsAppButton from './ui/WhatsAppButton.astro';
+import { images } from '../data/assets';
+
+/**
+ * Логотип — не <Image>/<img>, а фон на <span>: tests/e2e/header-hero.spec.ts
+ * проверяет fetchpriority и alt у ПЕРВОГО <img> на странице и ожидает там
+ * фото мастера (LCP-элемент первого экрана). Шапка идёт в разметке раньше
+ * Hero, и если бы логотип рендерился как <img>, он и оказался бы первым,
+ * а не фото — тест бы проверял не то изображение. getImage() всё равно
+ * прогоняет PNG через тот же оптимизатор (ресайз под 2x плотность),
+ * только без тега <img>.
+ */
+const logo = await getImage({ src: images.logoMonogram.src, width: 74, height: 74 });
+
+/**
+ * Бургера в макете нет (node 1:471/1:923 — ссылки просто исчезают на
+ * мобильном), поэтому навигация на узких экранах не сворачивается в
+ * меню, а прячется целиком через hidden md:flex. Это единственное
+ * решение и в макете, и здесь: страница остаётся без единого клиентского
+ * компонента.
+ */
+const navLinks = [
+  { href: '#polomki', label: 'Поломки' },
+  { href: '#kak-rabotaem', label: 'Как работаем' },
+  { href: '#oborudovanie', label: 'Оборудование' },
+  { href: '#dlya-biznesa', label: 'Для бизнеса' },
+];
+---
+
+<header class="sticky top-0 z-10 overflow-x-clip bg-graphite">
+  {
+    /*
+      overflow-x-clip — подстраховка ровно у порога md=768px: макет
+      «Header» рисован под широкий десктоп-контейнер (1320px), и на
+      логотип + четыре пункта навигации по 28px + пилюлю WhatsApp у самой
+      границы 768px попросту не хватает ширины (сумма их собственных
+      ширин — около 990px против 688px доступного места). flex-shrink
+      сжимает что может, но неразрывный текст кнопки WhatsApp всё равно
+      вылезает на несколько пикселей за пределы вьюпорта — без этой
+      подстраховки это единственное место, где появляется горизонтальная
+      прокрутка (проверка на ширинах 360/390/768/1024/1440/1920). Полноценно
+      это лечится только вторым брейкпоинтом или адаптивными gap/шрифтом
+      навигации, а тот и другой выходят за рамки задачи (см. отчёт).
+    */
+  }
+  <Container>
+    <div class="flex h-[84px] items-center justify-between">
+      <a
+        href="/"
+        class="flex items-center gap-[11px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber md:shrink-0"
+      >
+        <span
+          role="img"
+          aria-label={images.logoMonogram.alt}
+          class="h-[37px] w-[37px] shrink-0 rounded-[6.58px] bg-cover bg-center"
+          style={`background-image:url(${logo.src})`}
+        />
+        <span class="text-[21px] font-bold tracking-[-0.42px] text-chalk">Express Cooling</span>
+      </a>
+
+      <nav aria-label="Основная навигация" class="hidden min-w-0 items-center gap-[28px] md:flex">
+        {
+          navLinks.map((link) => (
+            <a
+              href={link.href}
+              class="text-[17px] font-medium text-chalk-muted transition-colors duration-200 ease-soft hover:text-chalk focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber"
+            >
+              {link.label}
+            </a>
+          ))
+        }
+      </nav>
+
+      <WhatsAppButton source="header" label="Написать в WhatsApp" class="md:min-w-0" />
+    </div>
+  </Container>
+</header>

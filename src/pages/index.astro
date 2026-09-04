@@ -1,18 +1,51 @@
 ---
+import { getImage } from 'astro:assets';
 import Base from '../layouts/Base.astro';
+import Header from '../components/Header.astro';
+import Hero from '../components/Hero.astro';
 import WhatsAppButton from '../components/ui/WhatsAppButton.astro';
 import PhoneButton from '../components/ui/PhoneButton.astro';
 import Icon from '../components/ui/Icon.astro';
+import { images } from '../data/assets';
+import { heroImageSizes, heroImageWidths } from '../lib/heroImage';
+
+/**
+ * Приоритетная предзагрузка фото первого экрана (LCP). widths здесь —
+ * буквально те же heroImageWidths, что использует <Image> в Hero.astro,
+ * поэтому getImage() строит тот же набор кандидатов srcset, что окажется
+ * в итоговом <img>: браузер выбирает из preload и из <img> один и тот же
+ * файл по одинаковым (srcset, sizes, viewport) — не предзагружает
+ * случайный вариант, который потом не пригодится.
+ */
+const heroPreload = await getImage({
+  src: images.heroMaster.src,
+  widths: heroImageWidths,
+  format: 'avif',
+});
 ---
 
 <Base
   title="Ремонт холодильников в Алматы — Express Cooling"
   description="Ремонт холодильников и холодильного оборудования в Алматы. Звонки принимают сами мастера, выезд за 40-90 минут, диагностика от 3500 ₸, стоимость называем до начала работ."
 >
-  <h1 data-testid="page-title">Ремонт холодильников в Алматы</h1>
+  <link
+    slot="head"
+    rel="preload"
+    as="image"
+    type="image/avif"
+    imagesrcset={heroPreload.srcSet.attribute}
+    imagesizes={heroImageSizes}
+    fetchpriority="high"
+  />
   <!-- Временный вывод UI-примитивов для tests/e2e/primitives.spec.ts и
        tests/e2e/reveal-fallback.spec.ts. Удаляется в Task 12, когда секции
-       начнут использовать те же примитивы по-настоящему. -->
+       начнут использовать те же примитивы по-настоящему. Стоит перед
+       <Header />, а не после контента: reveal-fallback.spec.ts ждёт, что
+       IntersectionObserver увидит #reveal-probe без скролла, а Header + Hero
+       уже сами по себе выше высоты вьюпорта в мобильном проекте Playwright.
+       Не спрятано через sr-only/display — проект запрещает скрытый текст в
+       любом виде, поэтому этот блок временно виден над шапкой (уйдёт в
+       Task 12 вместе с остальными временными заглушками). -->
   <WhatsAppButton source="test-primitive" />
   <PhoneButton source="test-phone" />
   <div id="test-icons">
@@ -22,4 +55,18 @@ import Icon from '../components/ui/Icon.astro';
     <Icon name="brand-hitachi" />
   </div>
   <p class="reveal" data-testid="reveal-probe">Проверка появления контента</p>
+
+  <Header />
+  <main>
+    <Hero />
+
+    <!-- Заглушки якорей шапки: настоящие секции появятся в задачах 8-10,
+         сборка index.astro со всеми секциями — в задаче 12. Тест
+         tests/e2e/header-hero.spec.ts проверяет, что все 4 ссылки навигации
+         ведут в существующие узлы уже сейчас. -->
+    <div id="polomki"></div>
+    <div id="kak-rabotaem"></div>
+    <div id="oborudovanie"></div>
+    <div id="dlya-biznesa"></div>
+  </main>
 </Base>

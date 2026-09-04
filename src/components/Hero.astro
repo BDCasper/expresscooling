@@ -1,0 +1,111 @@
+---
+import { Image } from 'astro:assets';
+import Container from './ui/Container.astro';
+import Section from './ui/Section.astro';
+import WhatsAppButton from './ui/WhatsAppButton.astro';
+import PhoneButton from './ui/PhoneButton.astro';
+import Icon from './ui/Icon.astro';
+import { site } from '../data/site';
+import { images } from '../data/assets';
+import { heroImageSizes, heroImageWidths } from '../lib/heroImage';
+
+/**
+ * Preload-ссылка на этот же файл — в <head>, собирается в index.astro
+ * через getImage() с теми же heroImageWidths/heroImageSizes (см. lib/
+ * heroImage.ts) и передаётся в Base.astro через именованный слот "head".
+ * Собрать её прямо здесь не вышло: слой Astro, который сам переносит
+ * элементы с slot="head" в <head> из вложенных компонентов, применяется
+ * только к <style>/<script>, добавленным механизмом бандлинга, а не к
+ * произвольным тегам — на практике (см. dist/index.html после сборки)
+ * <link slot="head"> просто остаётся лежать в <body> as is, с атрибутом
+ * slot="head" в выводе. Явный именованный слот в Base.astro — рабочий
+ * вариант вместо этого.
+ */
+---
+
+<Section tone="dark" id="hero" class="relative">
+  <Container>
+    <div class="flex flex-col md:flex-row md:items-stretch md:gap-x-[60px]">
+      <div class="reveal py-10 md:min-w-0 md:basis-[45%] md:py-16">
+        <p class="text-[14px] font-bold uppercase tracking-[2.24px] text-amber">Алматы, заявки с 6:00</p>
+
+        <h1
+          data-testid="page-title"
+          class="mt-[18px] max-w-[567px] text-[40px] font-bold leading-[40.8px] tracking-[-1.4px] text-chalk md:text-[66px] md:leading-[67.32px] md:tracking-[-2.31px]"
+        >
+          Холодильник чинит тот, кто взял трубку
+        </h1>
+
+        <p class="mt-[22px] max-w-[481px] text-[19px] leading-[30.02px] text-chalk-body">
+          {/*
+            Макет: «Выезд по городу за 40-90 минут…». Число подставляется из
+            site.responseTime («40-90 мин») вместо буквального «40-90
+            минут» из макета: правило проекта запрещает вписывать время
+            отклика в разметку напрямую, а держать одно и то же число
+            продублированным двумя строками — источник рассинхронизации,
+            если оно поменяется в site.ts.
+          */}
+          Звонки принимают сами мастера. Выезд по городу за {site.responseTime}, стоимость работ называем до начала
+          ремонта.
+        </p>
+
+        <div class="mt-[34px] flex flex-wrap gap-[14px]">
+          <WhatsAppButton source="hero" />
+          <PhoneButton source="hero" />
+        </div>
+
+        <div class="mt-[46px] flex flex-wrap gap-x-14 gap-y-6 border-t border-white/13 pt-[31px]">
+          <div>
+            <p class="text-[27px] font-extrabold tracking-[-0.756px] text-amber md:text-[40px] md:tracking-[-1.12px]">
+              {site.hours.label}
+            </p>
+            <p class="mt-[9px] max-w-[246px] text-[16.785px] leading-[23.499px] text-chalk-muted">
+              Принимаем заявки каждый день
+            </p>
+          </div>
+          <div>
+            <p class="text-[27px] font-extrabold tracking-[-0.756px] text-amber md:text-[40px] md:tracking-[-1.12px]">
+              {site.responseTime}
+            </p>
+            <p class="mt-[9px] max-w-[246px] text-[16.785px] leading-[23.499px] text-chalk-muted">
+              Обычное время выезда по городу
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="reveal-soft relative -mx-5 h-[300px] shrink-0 overflow-hidden rounded-bl-hero md:mx-0 md:h-auto md:min-w-0 md:basis-[55%]"
+      >
+        {
+          /*
+            На мобильном фото — во всю ширину экрана (макет 1:491), без
+            бокового отступа Container: -mx-5 гасит его px-5 у себя, а
+            md:mx-0 возвращает нормальный отступ на десктопе, где фото —
+            вторая колонка внутри контейнера, а не край в край.
+          */
+        }
+        <Image
+          src={images.heroMaster.src}
+          alt={images.heroMaster.alt}
+          width={2200}
+          height={1228}
+          widths={heroImageWidths}
+          sizes={heroImageSizes}
+          format="avif"
+          loading="eager"
+          fetchpriority="high"
+          class="h-full w-full object-cover object-[92%_50%]"
+        />
+      </div>
+    </div>
+  </Container>
+
+  <a
+    href="#polomki"
+    aria-label="Смотреть частые поломки"
+    class="absolute bottom-0 left-1/2 z-10 hidden h-[68px] w-[68px] -translate-x-1/2 translate-y-1/2 items-center justify-center rounded-full bg-amber shadow-[0_0_0_10px_var(--color-graphite)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-chalk md:flex"
+  >
+    <Icon name="icon-scroll-down" size={22} />
+  </a>
+</Section>

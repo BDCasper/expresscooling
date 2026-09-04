@@ -70,6 +70,10 @@ const ADS_ID = import.meta.env.PUBLIC_ADS_ID ?? '';
     <link rel="preload" as="font" type="font/woff2" href="/fonts/onest-cyrillic.woff2" crossorigin />
     <link rel="preload" as="font" type="font/woff2" href="/fonts/onest-latin.woff2" crossorigin />
 
+    <!-- Точки расширения <head> для конкретных страниц — например, приоритетная
+         предзагрузка LCP-изображения первого экрана (см. index.astro). -->
+    <slot name="head" />
+
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="ru_RU" />
     <meta property="og:title" content={title} />
