@@ -12,7 +12,15 @@ export default defineConfig({
   webServer: {
     command: 'npm run build && npm run preview',
     url: 'http://localhost:4321',
-    reuseExistingServer: !process.env.CI,
+    // Безусловно false, а не `!process.env.CI`. Локально CI не выставлен,
+    // и с `!process.env.CI` Playwright переиспользовал уже поднятый на
+    // 4321 preview-сервер вместо пересборки — после правки CSS/компонента
+    // тесты молча прогонялись на устаревшем dist/ и давали ложный зелёный
+    // результат (поймано вживую в раунде правок 1 задачи 5, воспроизведено
+    // намеренно в раунде 2 — см. task-5-report.md). Сборка занимает меньше
+    // секунды, а цена незамеченной регрессии на девяти следующих задачах
+    // вёрстки несопоставимо выше. Не возвращать на `!process.env.CI`.
+    reuseExistingServer: false,
     timeout: 120_000,
     // Astro 7 переводит `astro preview` в фоновый демон, когда определяет
     // запуск из-под AI-агента (пакет am-i-vibing), из-за чего процесс
