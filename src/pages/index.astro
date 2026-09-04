@@ -11,9 +11,6 @@ import Warehouse from '../components/Warehouse.astro';
 import Business from '../components/Business.astro';
 import NotDoing from '../components/NotDoing.astro';
 import Footer from '../components/Footer.astro';
-import WhatsAppButton from '../components/ui/WhatsAppButton.astro';
-import PhoneButton from '../components/ui/PhoneButton.astro';
-import Icon from '../components/ui/Icon.astro';
 import { images } from '../data/assets';
 import { heroImageSizes, heroImageWidths } from '../lib/heroImage';
 
@@ -57,35 +54,4 @@ const heroPreload = await getImage({
     <NotDoing />
   </main>
   <Footer />
-
-  <!-- Временный вывод UI-примитивов для tests/e2e/primitives.spec.ts и
-       tests/e2e/reveal-fallback.spec.ts. Удаляется в Task 12, когда секции
-       начнут использовать те же примитивы по-настоящему. Внизу страницы,
-       под заглушками якорей — не мешает сверке Header/Hero с макетом. -->
-  <WhatsAppButton source="test-primitive" />
-  <PhoneButton source="test-phone" />
-  <div id="test-icons">
-    <Icon name="brand-lg" />
-    <Icon name="brand-samsung" />
-    <Icon name="brand-bosch" />
-    <Icon name="brand-hitachi" />
-  </div>
-  <p class="reveal" data-testid="reveal-probe">Проверка появления контента</p>
-  {
-    /*
-      Пробник — последний узел документа: без пространства под ним
-      reveal-fallback.spec.ts физически не может прокрутить его в зону
-      срабатывания. IntersectionObserver в RevealFallback.astro задан с
-      rootMargin '0px 0px -10% 0px' — это намеренно (не считать появлением
-      сантиметр, едва вылезший из-за нижнего края). Когда под пробником
-      нет вообще ничего, максимальная прокрутка страницы всегда ставит его
-      нижний край вровень с нижним краем вьюпорта — то есть ровно в те
-      исключённые 10%, сколько бы контента ни было выше. Этот распорок
-      даёт странице запас, чтобы пробник можно было докрутить по-настоящему
-      в кадр, а не только к его границе. Уходит вместе со всем временным
-      блоком в Task 12, когда после Hero появятся настоящие секции с
-      реальной высотой.
-    */
-  }
-  <div class="h-[60vh]" aria-hidden="true"></div>
 </Base>
