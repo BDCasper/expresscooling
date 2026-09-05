@@ -24,7 +24,16 @@ test('JSON-LD валиден и содержит настоящие телефо
   expect(data.address).toBeUndefined();
 });
 
-test('шрифты предзагружаются', async ({ page }) => {
+test('предзагружается только кириллический шрифт', async ({ page }) => {
+  // Ровно один preload, а не два: заголовок первого экрана (LCP-элемент)
+  // целиком кириллический, латиница выше сгиба нужна только цифрам в
+  // статистике Hero и логотипу шапки — предзагрузка обоих файлов заставляла
+  // их конкурировать за канал и на ~70-95 мс откладывала LCP (задача 15,
+  // см. task-15-report.md, эксперимент с латиницей). Латинский @font-face
+  // никуда не делся (fonts.spec.ts проверяет его отдельно через
+  // document.fonts) — просто грузится своим чередом, без preload.
   await page.goto('/');
-  await expect(page.locator('link[rel="preload"][as="font"]')).toHaveCount(2);
+  const preloads = page.locator('link[rel="preload"][as="font"]');
+  await expect(preloads).toHaveCount(1);
+  await expect(preloads).toHaveAttribute('href', '/fonts/onest-cyrillic.woff2');
 });
