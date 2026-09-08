@@ -1,5 +1,5 @@
 ---
-import { Image } from 'astro:assets';
+import { Picture } from 'astro:assets';
 import Section from './ui/Section.astro';
 import WhatsAppButton from './ui/WhatsAppButton.astro';
 import PhoneButton from './ui/PhoneButton.astro';
@@ -156,15 +156,16 @@ const heroLeftGutter = 'lg:pl-[max(40px,calc((100vw-1320px)/2+40px))]';
       </div>
     </div>
 
-    <div class="reveal-soft relative h-[300px] shrink-0 overflow-hidden rounded-bl-hero lg:h-auto lg:min-w-0 lg:flex-1">
-      <Image
+    <div class="reveal-soft relative h-[300px] shrink-0 overflow-clip rounded-bl-hero lg:h-auto lg:min-w-0 lg:flex-1">
+      <Picture
         src={images.heroMaster.src}
         alt={images.heroMaster.alt}
         width={2200}
         height={1228}
         widths={heroImageWidths}
         sizes={heroImageSizes}
-        format="avif"
+        formats={['avif']}
+        fallbackFormat="webp"
         loading="eager"
         fetchpriority="high"
         class="h-full w-full object-cover object-[92%_50%]"

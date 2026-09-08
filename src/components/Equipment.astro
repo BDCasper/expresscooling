@@ -1,5 +1,5 @@
 ---
-import { Image } from 'astro:assets';
+import { Picture } from 'astro:assets';
 import Section from './ui/Section.astro';
 import Container from './ui/Container.astro';
 import SectionHeading from './ui/SectionHeading.astro';
@@ -18,7 +18,24 @@ import { equipment } from '../data/equipment';
 const requestSize = { large: { width: 1100, height: 442 }, small: { width: 700, height: 573 } } as const;
 ---
 
-<Section tone="dark" id="oborudovanie" dataSection="equipment" class="relative overflow-hidden">
+{
+  /*
+    overflow-clip, а не overflow-hidden (было так до этой правки) — того же
+    декоративного градиента ниже ради. Разница некосметическая: overflow:
+    hidden делает элемент "контейнером прокрутки" по спецификации CSS
+    Overflow, даже когда сам он никогда не скроллится. .reveal-soft/.reveal
+    внутри секции используют animation-timeline: view(), а эта шкала
+    привязывается к БЛИЖАЙШЕМУ такому контейнеру-предку — то есть к самой
+    секции, а не к странице. Секция сама не прокручивается, поэтому прогресс
+    анимации замирал на первом же вычисленном значении (застревал на 0.68 и
+    0.896, воспроизведено в браузере) и размытие/подъём никогда не доходили
+    до конца, даже когда блок давно уехал выше экрана.
+    overflow: clip обрезает содержимое так же, но не создаёт контейнер
+    прокрутки — шкала снова привязывается к странице. Проверено тестом
+    tests/e2e/animations.spec.ts (красный при возврате на overflow-hidden).
+  */
+}
+<Section tone="dark" id="oborudovanie" dataSection="equipment" class="relative overflow-clip">
   {
     /*
       Тёплый декоративный градиент (node 1:247/1:248) — в макете это пять
@@ -79,12 +96,13 @@ const requestSize = { large: { width: 1100, height: 442 }, small: { width: 700, 
                 data-equipment
                 class={`group relative h-[196px] overflow-hidden rounded-[20px] md:h-[330px] ${spanClass}`}
               >
-                <Image
+                <Picture
                   src={image.src}
                   alt={image.alt}
                   width={size.width}
                   height={size.height}
-                  format="avif"
+                  formats={['avif']}
+                  fallbackFormat="webp"
                   loading="lazy"
                   class="absolute inset-0 h-full w-full object-cover transition-transform duration-200 ease-soft group-hover:scale-[1.03]"
                 />

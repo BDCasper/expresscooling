@@ -1,5 +1,5 @@
 ---
-import { Image } from 'astro:assets';
+import { Picture } from 'astro:assets';
 import WhatsAppButton from './ui/WhatsAppButton.astro';
 import { images } from '../data/assets';
 import type { Breakage } from '../data/breakages';
@@ -54,15 +54,16 @@ const s = sizes[size];
 
 <div
   data-breakage={breakage.slug}
-  class={`group relative flex flex-row overflow-hidden rounded-card border transition-transform duration-200 ease-soft hover:-translate-y-1 md:flex-col ${highlighted ? 'border-amber' : 'border-black/10'}`}
+  class={`group relative flex flex-row overflow-clip rounded-card border transition-transform duration-200 ease-soft hover:-translate-y-1 md:flex-col ${highlighted ? 'border-amber' : 'border-black/10'}`}
 >
-  <div class={`relative w-[104px] shrink-0 overflow-hidden md:w-full ${s.imageHeight}`}>
-    <Image
+  <div class={`relative w-[104px] shrink-0 overflow-clip md:w-full ${s.imageHeight}`}>
+    <Picture
       src={image.src}
       alt={image.alt}
       width={700}
       height={522}
-      format="avif"
+      formats={['avif']}
+      fallbackFormat="webp"
       loading="lazy"
       class="absolute inset-0 h-full w-full object-cover transition-transform duration-200 ease-soft group-hover:scale-[1.03]"
     />

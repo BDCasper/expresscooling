@@ -1,5 +1,5 @@
 ---
-import { Image } from 'astro:assets';
+import { Picture } from 'astro:assets';
 import Section from './ui/Section.astro';
 import Container from './ui/Container.astro';
 import { images } from '../data/assets';
@@ -29,13 +29,14 @@ import { images } from '../data/assets';
   <Container>
     <div class="py-16 md:py-[104px]">
       <div class="grid grid-cols-1 gap-4 md:grid-cols-[7fr_5fr]">
-        <div class="reveal-soft overflow-hidden rounded-[20px]">
-          <Image
+        <div class="reveal-soft overflow-clip rounded-[20px]">
+          <Picture
             src={images.warehouseShelves.src}
             alt={images.warehouseShelves.alt}
             width={714}
             height={553}
-            format="avif"
+            formats={['avif']}
+            fallbackFormat="webp"
             loading="lazy"
             class="h-[340px] w-full object-cover md:h-full md:aspect-[714/553]"
           />
@@ -47,13 +48,14 @@ import { images } from '../data/assets';
             Компрессоры, пуско-защитные реле, термостаты, ТЭНы оттайки и вентиляторы лежат у нас. Значит, между
             диагностикой и ремонтом нет паузы на заказ детали.
           </p>
-          <div class="mt-[22px] max-w-[438px] overflow-hidden rounded-[20px]">
-            <Image
+          <div class="mt-[22px] max-w-[438px] overflow-clip rounded-[20px]">
+            <Picture
               src={images.masterTools.src}
               alt={images.masterTools.alt}
               width={438}
               height={294}
-              format="avif"
+              formats={['avif']}
+              fallbackFormat="webp"
               loading="lazy"
               class="h-[186px] w-full object-cover md:h-[294px]"
             />
