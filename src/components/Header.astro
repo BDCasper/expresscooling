@@ -16,37 +16,54 @@ import { images } from '../data/assets';
 const logo = await getImage({ src: images.logoMonogram.src, width: 74, height: 74 });
 
 /**
- * Бургера в макете нет (node 1:471/1:923 — ссылки просто исчезают на
- * мобильном), поэтому навигация на узких экранах не сворачивается в
- * меню, а прячется целиком. Это единственное решение и в макете, и здесь:
- * страница остаётся без единого клиентского компонента.
+ * Порог показа десктопного горизонтального меню — xl (1280px), а не md
+ * (768px), не изменилось этой правкой. Натуральная (несжатая) ширина
+ * логотипа (~205) + навигации на 4 пункта с промежутком 28px (~499) +
+ * кнопки WhatsApp (~273) — около 977px плюс отступы контейнера. На md эта
+ * сумма физически не помещается вплоть до ~1050px (внутренняя ширина
+ * контейнера на 1024 — всего 944): текст логотипа наезжает на первый пункт
+ * навигации, последний пункт уезжает под кнопку. С xl=1280 внутренняя
+ * ширина контейнера — 1200, всё встаёт свободно без переноса и наложений.
  *
- * Порог показа — xl (1280px), а не md (768px). Натуральная (несжатая)
- * ширина логотипа (~205) + навигации на 4 пункта с промежутком 28px
- * (~499) + кнопки WhatsApp (~273) — около 977px плюс отступы контейнера.
- * На md эта сумма физически не помещается вплоть до ~1050px (внутренняя
- * ширина контейнера на 1024 — всего 944): текст логотипа наезжает на
- * первый пункт навигации, последний пункт уезжает под кнопку. С xl=1280
- * внутренняя ширина контейнера — 1200, всё встаёт свободно без переноса
- * и наложений. Между md и xl в шапке остаются только логотип и кнопка —
- * это осознанный второй брейкпоинт сверх заявленного md, оправданный тем,
- * что перекрывающийся текст хуже одного лишнего класса.
+ * Ниже xl вместо простого скрытия (было раньше — в макете 1:471/1:923
+ * бургера нет, ссылки просто исчезают на мобильном) теперь открывается
+ * боковая панель с теми же четырьмя ссылками — владелец увидел вживую, что
+ * четыре раздела становятся физически недостижимы ниже 1280px, и попросил
+ * панель. Макета для неё нет, стиль — по токенам проекта.
+ *
+ * Открытие/закрытие — не React и не клиентский компонент: три DOM-узла
+ * (кнопка, подложка, панель) плюс один встроенный <script> ниже, читающий
+ * их по id. Это сохраняет главное свойство проекта — на странице нет ни
+ * одного фреймворкового компонента.
+ *
+ * Пока панель открыта, фокус не должен уходить на элементы под ней — вместо
+ * собственного keydown-перехватчика Tab (лишние байты в и так тесный бюджет
+ * инлайн-скриптов, см. RevealFallback.astro) скрипт помечает inert пять
+ * узлов вне панели: логотип, десктопное меню, кнопку WhatsApp в шапке,
+ * <main> и <footer>. Сама кнопка-бургер и обёртка шапки НЕ инертятся —
+ * иначе инертным окажется и сам бургер (он лежит в общей строке шапки
+ * вместе с этой кнопкой WhatsApp), и повторный клик по нему для закрытия
+ * перестаёт работать (поймано вживую тестом: "subtree intercepts pointer
+ * events"). Браузер сам убирает inert-поддерево из порядка Tab и из дерева
+ * доступности — обойти панель клавиатурой физически нельзя, а код короче
+ * и надёжнее самодельной ловушки фокуса. Симметрично: сама панель inert по
+ * умолчанию (закрыта при первой отрисовке) и снимается тем же скриптом,
+ * который переключает aria-expanded на кнопке; отдельный aria-hidden не
+ * нужен — inert сам убирает поддерево из дерева доступности (часть
+ * спецификации HTML, поддержано во всех современных браузерах).
  */
 const navLinks = [
-  { href: '#polomki', label: 'Поломки' },
-  { href: '#kak-rabotaem', label: 'Как работаем' },
-  { href: '#oborudovanie', label: 'Оборудование' },
-  { href: '#dlya-biznesa', label: 'Для бизнеса' },
+  { href: '/#polomki', label: 'Поломки' },
+  { href: '/#kak-rabotaem', label: 'Как работаем' },
+  { href: '/#oborudovanie', label: 'Оборудование' },
+  { href: '/#dlya-biznesa', label: 'Для бизнеса' },
 ];
 ---
 
 <header class="sticky top-0 z-10 bg-graphite">
   <Container>
     <div class="flex h-[84px] items-center justify-between">
-      <a
-        href="/"
-        class="flex items-center gap-1.5 md:gap-[11px] focus-ring"
-      >
+      <a id="header-logo" href="/" class="flex items-center gap-1.5 md:gap-[11px] focus-ring">
         <span
           role="img"
           aria-label={images.logoMonogram.alt}
@@ -76,7 +93,7 @@ const navLinks = [
         <span class="whitespace-nowrap text-[21px] font-bold tracking-[-0.42px] text-chalk">Express Cooling</span>
       </a>
 
-      <nav aria-label="Основная навигация" class="hidden items-center gap-[28px] xl:flex">
+      <nav id="desktop-nav" aria-label="Основная навигация" class="hidden items-center gap-[28px] xl:flex">
         {
           navLinks.map((link) => (
             <a
@@ -89,7 +106,181 @@ const navLinks = [
         }
       </nav>
 
-      <WhatsAppButton source="header" label="Написать в WhatsApp" mobileLabel="WhatsApp" size="sm" class="min-w-0" />
+      <div class="flex items-center gap-2">
+        {
+          /*
+            Кнопка WhatsApp в шапке — единственная липкая точка конверсии,
+            доступная с любого места страницы, поэтому не должна пропадать
+            ни на одной ширине (по прямому требованию ревью). Ниже md
+            (768px) места на полную пилюлю рядом с логотипом и бургером нет
+            (замерено: на 390px пилюля с короткой подписью и без бургера
+            уже кончалась ровно на границе контейнера — 0px запаса), поэтому
+            там не текстовая пилюля, а круглая кнопка-значок 44×44
+            (size="round" — тот же приём, что PhoneButton variant="round"
+            в Hero.astro). Видимость переключается парой обёрток (не одним
+            элементом с адаптивными классами) — та же причина, что описана
+            в Hero.astro у пары PhoneButton round/pill: у WhatsAppButton уже
+            есть свой безусловный "inline-flex" в base, конкурирующий с
+            display-классом на самом <a>, если добавить его прямо туда.
+            Оба рендерят WhatsAppButton с source="header" на одну и ту же
+            цель — это не задваивает клики в аналитике (тот же принцип,
+            что и у пары span'ов логотипа выше): виден и кликабелен только
+            один из двух, у скрытого display:none, вне accessibility-дерева.
+          */
+        }
+        <div id="header-whatsapp" class="flex items-center">
+          <div class="md:hidden">
+            <WhatsAppButton source="header" label="Написать в WhatsApp" size="round" />
+          </div>
+          <div class="hidden md:block">
+            <WhatsAppButton source="header" label="Написать в WhatsApp" mobileLabel="WhatsApp" size="sm" class="min-w-0" />
+          </div>
+        </div>
+
+        <button
+          type="button"
+          id="burger-toggle"
+          aria-expanded="false"
+          aria-controls="mobile-nav"
+          aria-label="Открыть меню"
+          class="focus-ring flex h-11 w-11 shrink-0 flex-col items-center justify-center gap-[6px] rounded-[10px] xl:hidden"
+        >
+          <span class="burger-bar bar-1 block h-[2px] w-[22px] rounded-full bg-chalk transition-transform duration-200 ease-soft" />
+          <span class="burger-bar bar-2 block h-[2px] w-[22px] rounded-full bg-chalk transition-opacity duration-200 ease-soft" />
+          <span class="burger-bar bar-3 block h-[2px] w-[22px] rounded-full bg-chalk transition-transform duration-200 ease-soft" />
+        </button>
+      </div>
     </div>
   </Container>
+
+  {
+    /*
+      Подложка и панель начинаются от top-[84px] (высота шапки, h-[84px]
+      выше), а не от самого верха (inset-0/inset-y-0) — иначе они лежат
+      поверх шапки, включая саму кнопку-бургер: та превращается в крестик
+      визуально, но кликнуть по ней для закрытия уже нельзя, её перехватывает
+      подложка/панель (проверено вживую тестом — клик валился с "subtree
+      intercepts pointer events"). Начиная от низа шапки, сама шапка
+      остаётся поверх обеих и кликабельна всё время, пока панель открыта.
+
+      Затемняющая подложка — просто hidden/visible через атрибут, без
+      анимации: единственная её задача — перехватывать клик за пределами
+      панели и визуально приглушать страницу под ней. Анимировать нечего —
+      opacity-переход здесь не добавляет ничего, что уже не делает выезд
+      самой панели, а лишний transition — лишние байты в бюджет инлайн-CSS.
+    */
+  }
+  <div id="mobile-nav-backdrop" class="fixed inset-x-0 top-[84px] bottom-0 z-30 bg-ink/70" hidden></div>
+
+  {
+    /*
+      role="dialog"/aria-modal — панель ведёт себя как модальное окно.
+      inert по умолчанию (закрыта при первой отрисовке); как скрипт снимает
+      его и что делает с остальной страницей, пока панель открыта — см.
+      комментарий у navLinks во фронтматтере выше.
+    */
+  }
+  <div
+    id="mobile-nav"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Мобильное меню"
+    inert
+    class="fixed right-0 top-[84px] bottom-0 z-40 flex w-[320px] max-w-full flex-col bg-graphite text-chalk shadow-[0_0_40px_rgba(0,0,0,0.4)] transition-transform duration-200 ease-soft"
+  >
+    <div class="flex items-center justify-between px-6 pt-6">
+      <span class="text-[15px] font-bold uppercase tracking-[2.1px] text-chalk-muted">Меню</span>
+      <button
+        type="button"
+        id="mobile-nav-close"
+        aria-label="Закрыть меню"
+        class="focus-ring flex h-11 w-11 items-center justify-center rounded-full"
+      >
+        <span aria-hidden="true" class="relative block h-5 w-5">
+          <span class="absolute left-0 top-1/2 h-[2px] w-full -translate-y-1/2 rotate-45 rounded-full bg-chalk" />
+          <span class="absolute left-0 top-1/2 h-[2px] w-full -translate-y-1/2 -rotate-45 rounded-full bg-chalk" />
+        </span>
+      </button>
+    </div>
+
+    <nav aria-label="Основная навигация" class="mt-6 flex flex-col overflow-y-auto px-6">
+      {
+        navLinks.map((link) => (
+          <a
+            href={link.href}
+            class="border-b border-white/10 py-4 text-[24px] font-semibold text-chalk transition-colors duration-200 ease-soft hover:text-amber focus-ring"
+          >
+            {link.label}
+          </a>
+        ))
+      }
+    </nav>
+
+    <div class="mt-auto px-6 pb-8 pt-6">
+      <WhatsAppButton source="burger" class="w-full justify-center" />
+    </div>
+  </div>
 </header>
+
+<style>
+  /*
+    #mobile-nav.is-open переопределяет transform у самой панели — селектор
+    на id+класс заведомо специфичнее одного класса из Tailwind, поэтому
+    порядок правил в собранном CSS не важен.
+  */
+  #mobile-nav {
+    transform: translateX(100%);
+  }
+  #mobile-nav.is-open {
+    transform: translateX(0);
+  }
+
+  /* Три полоски превращаются в крестик через aria-expanded — без лишнего JS. */
+  #burger-toggle[aria-expanded='true'] .bar-1 {
+    transform: translateY(8px) rotate(45deg);
+  }
+  #burger-toggle[aria-expanded='true'] .bar-2 {
+    opacity: 0;
+  }
+  #burger-toggle[aria-expanded='true'] .bar-3 {
+    transform: translateY(-8px) rotate(-45deg);
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    var toggle = document.getElementById('burger-toggle');
+    var panel = document.getElementById('mobile-nav');
+    var backdrop = document.getElementById('mobile-nav-backdrop');
+    var closeBtn = document.getElementById('mobile-nav-close');
+    if (!toggle || !panel || !backdrop || !closeBtn) return;
+    var rest = ['header-logo', 'desktop-nav', 'header-whatsapp'].map(document.getElementById.bind(document));
+    rest.push(document.querySelector('main'), document.querySelector('footer'));
+    var isOpen = false;
+    var prevFocus = null;
+    function setOpen(open) {
+      isOpen = open;
+      toggle.setAttribute('aria-expanded', String(open));
+      panel.classList.toggle('is-open', open);
+      panel.inert = !open;
+      backdrop.hidden = !open;
+      document.documentElement.style.overflow = open ? 'hidden' : '';
+      rest.forEach(function (el) { if (el) el.inert = open; });
+      if (open) {
+        prevFocus = document.activeElement;
+        var first = panel.querySelector('a, button');
+        if (first) first.focus();
+      } else if (prevFocus) prevFocus.focus();
+    }
+    toggle.addEventListener('click', function () { setOpen(!isOpen); });
+    [closeBtn, backdrop].forEach(function (el) {
+      el.addEventListener('click', function () { setOpen(false); });
+    });
+    panel.addEventListener('click', function (ev) {
+      if (ev.target.closest('a')) setOpen(false);
+    });
+    document.addEventListener('keydown', function (ev) {
+      if (isOpen && ev.key === 'Escape') setOpen(false);
+    });
+  })();
+</script>

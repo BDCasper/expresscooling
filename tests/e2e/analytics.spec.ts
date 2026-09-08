@@ -28,7 +28,12 @@ test('клик по CTA кладёт событие в dataLayer с меткой
   await page.goto('/');
   // Отменяем переход, чтобы не уходить на wa.me
   await page.route('**/wa.me/**', (route) => route.abort());
-  await page.locator('a[data-cta]').first().click({ button: 'left' }).catch(() => {});
+  // data-cta="hero" (не .first()): первый по DOM-порядку data-cta —
+  // кнопка WhatsApp в шапке, а она с бургер-меню (Header.astro) скрыта
+  // ниже md (768px) — .first().click() на мобильном проекте бесконечно
+  // ждал бы видимости скрытого элемента. Кнопка в Hero видна на любой
+  // ширине безусловно.
+  await page.locator('a[data-cta="hero"]').first().click({ button: 'left' }).catch(() => {});
 
   const events = await page.evaluate(() => (window as any).dataLayer ?? []);
   const serialized = JSON.stringify(events);
@@ -37,7 +42,9 @@ test('клик по CTA кладёт событие в dataLayer с меткой
 
 test('UTM-метки дописываются в сообщение WhatsApp без искажения пробелов', async ({ page }) => {
   await page.goto('/?gclid=TEST123&utm_source=google');
-  const href = (await page.locator('a[data-cta]').first().getAttribute('href')) ?? '';
+  // data-cta="hero" — та же причина, что и в тесте клика по CTA выше: первый
+  // по DOM-порядку data-cta (шапка) скрыт ниже md с приходом бургер-меню.
+  const href = (await page.locator('a[data-cta="hero"]').first().getAttribute('href')) ?? '';
 
   // Намеренно не читаем это через `new URL(href).searchParams.get('text')`:
   // URLSearchParams разворачивает "+" обратно в пробел при чтении, поэтому

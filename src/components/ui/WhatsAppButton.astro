@@ -7,12 +7,14 @@ interface Props {
   source: string;
   variant?: 'solid' | 'inline';
   /**
-   * Размер варианта solid: `md` (56px, дефолт — hero и большинство мест) или
-   * `sm` (46px — шапка, node 1:471/1:923). Разница не только в высоте, но и
-   * в горизонтальных отступах и размере значка — все три числа заданы
-   * дизайнером отдельно для узкой пилюли, не пропорциональным уменьшением.
+   * Размер варианта solid: `md` (56px, дефолт — hero и большинство мест),
+   * `sm` (46px — шапка от md, node 1:471/1:923) или `round` (44px круг без
+   * подписи — шапка ниже md, см. комментарий у solidSizes.round). Разница
+   * между md/sm не только в высоте, но и в горизонтальных отступах и
+   * размере значка — все три числа заданы дизайнером отдельно для узкой
+   * пилюли, не пропорциональным уменьшением.
    */
-  size?: 'md' | 'sm';
+  size?: 'md' | 'sm' | 'round';
   label?: string;
   /**
    * Короткая подпись для мобильных ширин (< md), например «WhatsApp» вместо
@@ -64,9 +66,21 @@ const base =
  * padding/высоты/иконки), поэтому именно им безопаснее всего
  * пожертвовать на самой тесной ширине.
  */
+/**
+ * `round` (шапка ниже md, node про PhoneButton variant="round" в Hero —
+ * тот же приём, перенесённый на кнопку WhatsApp по правке ревью): круг
+ * 44px, только значок, без подписи. Раньше на этой ширине кнопку просто
+ * прятали целиком (не хватало места рядом с бургером) — единственная
+ * липкая точка конверсии, доступная с любого места страницы, пропадала
+ * именно там, где мобильного трафика больше всего. Круглая кнопка занимает
+ * меньше места, чем даже короткая подпись `sm`, и решает это без потери
+ * самой кнопки. justify-center — необходим: base не центрирует одиночную
+ * иконку без текста по горизонтали внутри квадрата.
+ */
 const solidSizes = {
   md: 'h-14 gap-3 pl-9 pr-6 text-[18px]',
   sm: 'h-[46px] gap-1 md:gap-3 pl-[29px] pr-[21px] text-[17px]',
+  round: 'h-11 w-11 shrink-0 justify-center',
 };
 
 /**
@@ -82,8 +96,9 @@ const variants = {
   inline: `gap-[7px] text-[17px] ${onAmber ? 'text-[#084c36]' : 'text-[#0b6b4f]'}`,
 };
 
-const iconSize = size === 'sm' ? 19 : 21;
+const iconSize = size === 'round' ? 20 : size === 'sm' ? 19 : 21;
 const inlineArrowIcon = onAmber ? 'icon-arrow-up-right-alt' : 'icon-arrow-up-right';
+const isRound = size === 'round';
 ---
 
 <a
@@ -91,10 +106,11 @@ const inlineArrowIcon = onAmber ? 'icon-arrow-up-right-alt' : 'icon-arrow-up-rig
   data-cta={source}
   target="_blank"
   rel="noopener noreferrer"
+  aria-label={isRound ? label : undefined}
   class={`${base} ${variants[variant]} ${className}`}
 >
   {variant === 'solid' && <Icon name="icon-whatsapp-button" size={iconSize} />}
-  <span class="hidden md:inline">{label}</span>
+  {!isRound && <span class="hidden md:inline">{label}</span>}
   {
     /*
       whitespace-nowrap — короткая подпись обязана остаться в одну строку
@@ -121,7 +137,7 @@ const inlineArrowIcon = onAmber ? 'icon-arrow-up-right-alt' : 'icon-arrow-up-rig
       17px.
     */
   }
-  <span class="whitespace-nowrap text-[14px] md:hidden">{mobileLabel}</span>
+  {!isRound && <span class="whitespace-nowrap text-[14px] md:hidden">{mobileLabel}</span>}
   {
     /*
       group-hover — карточка поломки оборачивает эту кнопку в class="group"

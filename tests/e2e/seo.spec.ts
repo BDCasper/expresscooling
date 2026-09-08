@@ -19,6 +19,29 @@ test('страница 404 существует и не индексируетс
   await expect(page.getByRole('link', { name: /на главную/i })).toBeVisible();
 });
 
+test('на странице 404 ссылки навигации ведут на существующие адреса', async ({ page, request }) => {
+  await page.goto('/nesushchestvuyushchaya-stranica');
+  const hrefs = await page
+    .locator('header nav a')
+    .evaluateAll((as) => as.map((a) => a.getAttribute('href')));
+
+  expect(hrefs.length).toBeGreaterThan(0);
+
+  for (const href of hrefs) {
+    expect(href, `ссылка "${href}" не должна быть голым якорем — на 404 нет секций с такими id`).toMatch(
+      /^\/#/,
+    );
+
+    const [pathname, hash] = href!.split('#');
+    const res = await request.get(pathname || '/');
+    expect(res.status()).toBe(200);
+    const body = await res.text();
+    expect(body, `на странице "${pathname || '/'}" не найден элемент с id="${hash}"`).toContain(
+      `id="${hash}"`,
+    );
+  }
+});
+
 test('иерархия заголовков не имеет разрывов', async ({ page }) => {
   await page.goto('/');
   const levels = await page
