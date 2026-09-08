@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { site } from '../../src/data/site';
 
 test('восемь карточек поломок, у каждой своя метка источника', async ({ page }) => {
   await page.goto('/');
@@ -16,7 +17,14 @@ test('восемь карточек поломок, у каждой своя м�
 test('полоса фактов показывает цену из данных, а не из макета', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('#polomki')).toHaveCount(1);
-  await expect(page.getByText('от 3500 ₸').first()).toBeVisible();
+  // Локатор ограничен самой полосой фактов (data-section="facts"), а не
+  // всей страницей: цена из site.diagnosticsFrom дублируется текстом ещё в
+  // паре других секций, и ненаправленный поиск по всей странице находил бы
+  // первое совпадение где угодно, даже если сама полоса фактов вписала бы
+  // цену литералом, разошедшимся с site.ts.
+  await expect(
+    page.locator('[data-section="facts"]').getByText(site.diagnosticsFrom).first(),
+  ).toBeVisible();
 });
 
 test('карточки поломок не тянут изображения заранее', async ({ page }) => {
