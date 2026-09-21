@@ -8,6 +8,20 @@ test('мета-данные заполнены', async ({ page }) => {
   await expect(page.locator('meta[property="og:image"]')).toHaveCount(1);
 });
 
+/**
+ * Тег подтверждения прав в Google Search Console. Он не влияет ни на вид
+ * страницы, ни на её работу, поэтому пропажу заметить нечем — а без него
+ * Search Console при очередной перепроверке снимет подтверждение, и
+ * пропадут отчёты по поисковым запросам и приём карты сайта.
+ */
+test('тег подтверждения Google Search Console на месте', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('meta[name="google-site-verification"]')).toHaveAttribute(
+    'content',
+    'itD-FrRT0ZGTPSImeF8WPpeHqmlkpNVsxsLiKbyxDm4',
+  );
+});
+
 test('на странице ровно один h1', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('h1')).toHaveCount(1);

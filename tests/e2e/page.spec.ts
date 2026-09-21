@@ -53,3 +53,38 @@ test('временная оснастка задач 5-6 не вернулась
 
   await expect(page.locator('#test-icons')).toHaveCount(0);
 });
+
+/**
+ * Зелёная плашка WhatsApp (bg-wa, #25D366) несёт белый текст и белый
+ * значок — правка заказчика поверх макета, где и то и другое было
+ * тёмно-зелёным (--color-wa-ink, #08251A). Цвет значка при этом запечён в
+ * сам SVG (см. Icon.astro), поэтому одной подмены класса текста мало:
+ * проверяем и заливку внутри <svg>, иначе вернувшийся тёмный файл значка
+ * остался бы незамеченным на белой подписи. Кнопок с плашкой на странице
+ * несколько (шапка, hero, бургер, «Другая поломка», футер, для бизнеса) —
+ * проверяем все, а не первую.
+ */
+test('на зелёных кнопках WhatsApp текст и значок белые', async ({ page }) => {
+  await page.goto('/');
+
+  const solid = page.locator('a[data-cta][class*="bg-wa"]');
+  const count = await solid.count();
+  expect(count).toBeGreaterThan(3);
+
+  for (let i = 0; i < count; i++) {
+    const button = solid.nth(i);
+    const source = await button.getAttribute('data-cta');
+
+    expect(await button.evaluate((el) => getComputedStyle(el).color), `текст кнопки ${source}`).toBe(
+      'rgb(255, 255, 255)',
+    );
+
+    const fills = await button
+      .locator('svg path')
+      .evaluateAll((paths) => paths.map((p) => (p.getAttribute('fill') ?? '').toUpperCase()));
+    expect(fills.length, `значок кнопки ${source}`).toBeGreaterThan(0);
+    for (const fill of fills) {
+      expect(fill, `заливка значка кнопки ${source}`).toBe('#FFFFFF');
+    }
+  }
+});

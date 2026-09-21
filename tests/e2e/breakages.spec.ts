@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { breakages } from '../../src/data/breakages';
 import { site } from '../../src/data/site';
 
 test('восемь карточек поломок, у каждой своя метка источника', async ({ page }) => {
@@ -35,4 +36,36 @@ test('карточки поломок не тянут изображения з�
   for (let i = 0; i < count; i++) {
     await expect(imgs.nth(i)).toHaveAttribute('loading', 'lazy');
   }
+});
+
+/**
+ * У каждой карточки чат должен открываться уже с её поломкой в тексте —
+ * человек не должен переписывать то, по чему только что щёлкнул. Проверяем
+ * не «текст непустой», а точное совпадение с заголовком именно этой
+ * карточки: перепутанный порядок или один и тот же текст на всех восьми
+ * кнопках прошли бы более слабую проверку незамеченными.
+ */
+test('в каждой карточке ссылка WhatsApp несёт свою поломку', async ({ page }) => {
+  await page.goto('/');
+
+  for (const breakage of breakages) {
+    const href =
+      (await page.locator(`[data-breakage="${breakage.slug}"] a[data-cta]`).getAttribute('href')) ?? '';
+    const text = decodeURIComponent(href.split('text=')[1] ?? '');
+    expect(text, `карточка ${breakage.slug}`).toBe(
+      `${site.whatsappText} Проблема: ${breakage.title}.`,
+    );
+  }
+});
+
+/**
+ * Широкая карточка «Другая поломка» — единственная в секции, у которой
+ * поломки нет по смыслу: человек как раз не знает, что случилось. Её текст
+ * обязан остаться общей заготовкой, без предложения «Проблема: …», а не
+ * получить чужой симптом «на всякий случай».
+ */
+test('у карточки «Другая поломка» текст остаётся общим', async ({ page }) => {
+  await page.goto('/');
+  const href = (await page.locator('a[data-cta="card-other"]').getAttribute('href')) ?? '';
+  expect(decodeURIComponent(href.split('text=')[1] ?? '')).toBe(site.whatsappText);
 });

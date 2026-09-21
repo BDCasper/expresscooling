@@ -66,12 +66,15 @@ test('внешних JS-файлов нет', async ({ page }) => {
   expect(external).toEqual([]);
 });
 
-test('встроенные скрипты укладываются в бюджет 6144 байт', async ({ page }) => {
+test('встроенные скрипты укладываются в бюджет 8704 байт', async ({ page }) => {
   /**
    * Потолок поднят с 4.5 КБ (4608 байт) до 6 КБ (6144 байт) ради бургер-меню
-   * в Header.astro (задача "burger-blur") — на момент правки три встроенных
-   * скрипта (аналитика в Base.astro, RevealFallback.astro, бургер-меню)
-   * весят 5929 байт сырых. Само число проверяем на актуальной, а не
+   * в Header.astro (задача "burger-blur"), а затем до 8.5 КБ (8704 байт) ради
+   * инерционной прокрутки колесом (SmoothScroll.astro) — четыре встроенных
+   * скрипта весят 8086 байт сырых. Сырых: is:inline-скрипты Astro не
+   * минифицирует и не обрабатывает вовсе, они попадают в HTML как есть
+   * вместе с комментариями, а по сети уходят уже в gzip вместе с
+   * документом. Само число проверяем на актуальной, а не
    * зафиксированной странице: считаем содержимое каждого <script> без
    * атрибута src (внешних тут и так ноль — см. тест выше) и не
    * application/ld+json (это данные, не код). JSON.stringify(schema) в
@@ -90,5 +93,5 @@ test('встроенные скрипты укладываются в бюдже
   const totalBytes = scripts.reduce((sum, code) => sum + Buffer.byteLength(code, 'utf8'), 0);
   console.log('встроенные скрипты, байт:', totalBytes, 'по одному:', scripts.map((s) => Buffer.byteLength(s, 'utf8')));
 
-  expect(totalBytes).toBeLessThanOrEqual(6144);
+  expect(totalBytes).toBeLessThanOrEqual(8704);
 });

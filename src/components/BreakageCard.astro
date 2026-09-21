@@ -84,7 +84,12 @@ const s = sizes[size];
       {breakage.description}
     </p>
     <div class={`mt-auto pt-3 ${s.padX} ${s.ctaPad}`}>
-      <WhatsAppButton variant="inline" source={`card-${breakage.slug}`} onAmber={highlighted} />
+      <WhatsAppButton
+        variant="inline"
+        source={`card-${breakage.slug}`}
+        onAmber={highlighted}
+        problem={breakage.title}
+      />
     </div>
     <span
       aria-hidden="true"

@@ -50,6 +50,34 @@ describe('whatsappHref', () => {
     // Проверяем что раскодирование даёт ровно исходный текст
     expect(decodeURIComponent(encodedText)).toBe(site.whatsappText);
   });
+
+  it('дописывает поломку отдельным предложением, а не приклеивает к заготовке', () => {
+    const href = whatsappHref('Шумит, гудит, трещит');
+    const text = decodeURIComponent(href.split('text=')[1]);
+    // Заготовка — законченная фраза, поломка идёт после неё вторым
+    // предложением. Отправить можно как есть, ничего не печатая.
+    expect(text).toBe(`${site.whatsappText} Проблема: Шумит, гудит, трещит.`);
+    expect(text.startsWith(site.whatsappText)).toBe(true);
+    expect(text).toMatch(/Проблема: Шумит, гудит, трещит\.$/);
+  });
+
+  it('без поломки заготовка тоже законченная фраза, а не оборванная', () => {
+    expect(whatsappHref()).toBe(whatsappHref(undefined));
+    const text = decodeURIComponent(whatsappHref().split('text=')[1]);
+    expect(text).toBe(site.whatsappText);
+    // Главное свойство заготовки, ради которого её и переписали: она не
+    // обрывается на двоеточии или пробеле в ожидании, что человек
+    // допишет сам. Оборванная фраза стоила восьми нажатий без единого
+    // отправленного сообщения (см. комментарий у site.whatsappText).
+    expect(text).toMatch(/[.!?]$/);
+    expect(text).not.toMatch(/[:\s]$/);
+  });
+
+  it('поломка кодируется так же, как заготовка: пробелы через %20', () => {
+    const encoded = whatsappHref('Течёт, лужа под холодильником').split('text=')[1];
+    expect(encoded).not.toContain('+');
+    expect(encoded).toContain('%20');
+  });
 });
 
 describe('site', () => {

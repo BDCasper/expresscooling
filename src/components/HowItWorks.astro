@@ -35,7 +35,11 @@ const steps = [
 
 <Section tone="light" id="kak-rabotaem" dataSection="how-it-works">
   <Container>
-    <div class="py-16 md:py-[104px]">
+    {
+      /* Верхний отступ урезан вдвое — см. комментарий в Breakages.astro:
+         эти две светлые секции идут подряд без смены фона. */
+    }
+    <div class="pt-10 pb-16 md:pt-[52px] md:pb-[104px]">
       <SectionHeading title="Как проходит выезд" />
 
       <div class="reveal-stagger mt-11 grid grid-cols-1 gap-8 md:mt-[44px] md:grid-cols-3 md:gap-12">

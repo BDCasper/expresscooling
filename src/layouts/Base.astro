@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import { buildLocalBusinessSchema } from '../lib/schema';
 import RevealFallback from '../components/ui/RevealFallback.astro';
+import SmoothScroll from '../components/ui/SmoothScroll.astro';
 
 interface Props {
   title: string;
@@ -66,6 +67,16 @@ const ADS_ID = import.meta.env.PUBLIC_ADS_ID ?? '';
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
+
+    <!-- Подтверждение прав в Google Search Console. Не секрет: этот тег
+         виден в исходном коде страницы у любого посетителя, поэтому он
+         зашит прямо здесь, а не в переменную окружения.
+
+         Удалять нельзя. Search Console перепроверяет тег и снимает
+         подтверждение, если он пропал, — вместе с ним отваливаются отчёты
+         по поисковым запросам и приём карты сайта. Проверяется тестом
+         в tests/e2e/head.spec.ts. -->
+    <meta name="google-site-verification" content="itD-FrRT0ZGTPSImeF8WPpeHqmlkpNVsxsLiKbyxDm4" />
 
     <link rel="preload" as="font" type="font/woff2" href="/fonts/onest-cyrillic.woff2" crossorigin />
     <!--
@@ -178,5 +189,6 @@ const ADS_ID = import.meta.env.PUBLIC_ADS_ID ?? '';
   </head>
   <body class="font-sans">
     <slot />
+    <SmoothScroll />
   </body>
 </html>

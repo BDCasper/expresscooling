@@ -39,6 +39,14 @@ interface Props {
    * CSS-переопределение. На variant="solid" не влияет.
    */
   onAmber?: boolean;
+  /**
+   * Название поломки, которое дописывается к заготовке сообщения вторым
+   * предложением «Проблема: …» (см. whatsappHref в lib/links.ts). Из
+   * BreakageCard — у каждой из восьми карточек в секции «Выберите
+   * поломку» своя кнопка, и чат должен открываться уже с её симптомом.
+   * Не передан — текст остаётся общим, как в шапке, hero и футере.
+   */
+  problem?: string;
 }
 
 const {
@@ -49,6 +57,7 @@ const {
   mobileLabel = label,
   class: className = '',
   onAmber = false,
+  problem,
 } = Astro.props;
 
 const base =
@@ -91,8 +100,19 @@ const solidSizes = {
  * ревью «оживляет» карточку сама стрелка (см. группа .group-hover ниже
  * на <Icon>), а не зазор.
  */
+/**
+ * Текст и значок на зелёной плашке — белые, а не тёмно-зелёные
+ * (--color-wa-ink, #08251A), как было в макете. Это правка по просьбе
+ * заказчика: тёмная подпись на #25D366 читалась как неактивная кнопка.
+ * Значок поэтому берётся из отдельного файла
+ * icon-whatsapp-button-white.svg — цвет запечён в разметку каждого SVG
+ * (см. Icon.astro), currentColor там нет, и перекрасить его из CSS
+ * нельзя. Тёмный icon-whatsapp-button остался в проекте: он всё ещё
+ * нужен icon-whatsapp-bubble/-nav по соседству и служит исходником для
+ * белой копии.
+ */
 const variants = {
-  solid: `rounded-pill bg-wa text-wa-ink hover:bg-[#2ee070] hover:shadow-[0_8px_24px_-8px_rgba(37,211,102,0.6)] ${solidSizes[size]}`,
+  solid: `rounded-pill bg-wa text-white hover:bg-[#2ee070] hover:shadow-[0_8px_24px_-8px_rgba(37,211,102,0.6)] ${solidSizes[size]}`,
   inline: `gap-[7px] text-[17px] ${onAmber ? 'text-[#084c36]' : 'text-[#0b6b4f]'}`,
 };
 
@@ -102,14 +122,14 @@ const isRound = size === 'round';
 ---
 
 <a
-  href={whatsappHref()}
+  href={whatsappHref(problem)}
   data-cta={source}
   target="_blank"
   rel="noopener noreferrer"
   aria-label={isRound ? label : undefined}
   class={`${base} ${variants[variant]} ${className}`}
 >
-  {variant === 'solid' && <Icon name="icon-whatsapp-button" size={iconSize} />}
+  {variant === 'solid' && <Icon name="icon-whatsapp-button-white" size={iconSize} />}
   {!isRound && <span class="hidden md:inline">{label}</span>}
   {
     /*
